@@ -1,3 +1,5 @@
+> Documentacao principal do case: [case_MrHealth.md](case_MrHealth.md)
+
 # MR. HEALTH Data Platform
 
 Enterprise-grade data warehouse on GCP with zero infrastructure cost.
