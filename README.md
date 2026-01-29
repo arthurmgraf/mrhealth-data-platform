@@ -1,4 +1,4 @@
-> Documentacao principal: [MR_HEALTH_Data_Platform_Portfolio.html](docs/MR_HEALTH_Data_Platform_Portfolio.html)
+> Para documentacao principal, baixe o arquivo seguinte e abra no navegador: [MR_HEALTH_Data_Platform_Portfolio.html](docs/MR_HEALTH_Data_Platform_Portfolio.html)
 
 # MR. HEALTH Data Platform
 
