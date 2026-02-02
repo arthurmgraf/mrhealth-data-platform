@@ -39,6 +39,62 @@ This guide defines the **v3 Clean & Technical** style for creating professional 
 
 ---
 
+## 📐 Canvas Dimensions (LinkedIn-Optimized)
+
+All diagrams MUST use LinkedIn-optimized canvas sizes for social media readability.
+
+| Format | Width | Height | Ratio | Use Case |
+|--------|-------|--------|-------|----------|
+| **Portrait** | 1080px | 1350px | 4:5 | Vertical pipelines, carousels, data flows (DEFAULT) |
+| **Landscape** | 1200px | 627px | 1.91:1 | Wide architecture overviews, horizontal flows |
+
+### Rules
+- **Default format:** Portrait 1080x1350 unless diagram is explicitly horizontal
+- **Margins:** 40px on all sides (content area: 1000x1270 for portrait)
+- All elements must fit within canvas bounds
+- Export at 2x resolution for crisp display
+
+---
+
+## 🏹 Arrow Specification
+
+### Arrow Stroke Width
+- **ALL arrows:** `strokeWidth: 1` (mandatory)
+- Produces thin, elegant lines with proportionally small arrowheads
+- **Never** use strokeWidth 2 or higher on arrows
+
+### Binding Gap
+- **`gap: 5`** on all `startBinding` and `endBinding` (mandatory)
+- Never use `gap: 1` — it causes ugly overlapping with element edges
+
+### Arrow Labels
+- **`textAlign: "center"`** (mandatory, never `"left"`)
+- **Position:** Midpoint between source and target, 16-20px above the arrow line
+- **Font:** fontFamily: 3 (monospace), fontSize: 10-11px
+- **Color:** #868e96
+
+### Arrow Label Positioning Formula
+```
+label.x = (source.centerX + target.centerX) / 2 - label.width / 2
+label.y = arrow.y - 20
+```
+
+### Anti-Overlap Rules
+- Arrows MUST NOT pass through any element they are not connected to
+- Use Manhattan routing (orthogonal segments) for non-aligned elements
+- Maximum 3 segments per arrow (4 points in the `points` array)
+- 20px minimum clearance between arrow paths and non-connected elements
+- Arrow labels must not overlap any diagram element
+
+### Container Text Padding
+- **Minimum:** 12px on all 4 sides between text and container border
+- `text.x = container.x + 12`
+- `text.width = container.width - 24`
+- `text.y = container.y + 12`
+- `text.height = container.height - 24`
+
+---
+
 ## 📐 Structure Template
 
 ```
@@ -249,6 +305,6 @@ For presentations and documentation:
 ---
 
 **Created:** 2026-01-30
-**Last Updated:** 2026-01-30
+**Last Updated:** 2026-02-01
 **Owner:** Arthur Maia Graf
 **Style Version:** v3 Clean & Technical

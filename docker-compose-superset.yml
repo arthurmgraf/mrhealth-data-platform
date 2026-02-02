@@ -1,0 +1,46 @@
+services:
+  superset-init:
+    build:
+      context: .
+      dockerfile: superset/Dockerfile
+    command: ["/bin/bash", "/app/docker-bootstrap.sh"]
+    volumes:
+      - ./superset/docker-bootstrap.sh:/app/docker-bootstrap.sh
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+      - superset-data:/app/superset_home
+    environment:
+      SUPERSET_SECRET_KEY: "mrhealth-superset-dev-key-change-in-production"
+
+  superset:
+    build:
+      context: .
+      dockerfile: superset/Dockerfile
+    command: >
+      gunicorn
+        --bind 0.0.0.0:8088
+        --workers 2
+        --worker-class gthread
+        --threads 4
+        --timeout 120
+        "superset.app:create_app()"
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+      - ./keys/service-account.json:/app/keys/gcp.json:ro
+      - superset-data:/app/superset_home
+    environment:
+      SUPERSET_SECRET_KEY: "mrhealth-superset-dev-key-change-in-production"
+      GOOGLE_APPLICATION_CREDENTIALS: /app/keys/gcp.json
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8088/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      superset-init:
+        condition: service_completed_successfully
+
+volumes:
+  superset-data:

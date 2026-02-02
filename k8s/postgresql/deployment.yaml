@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+  namespace: mrhealth-db
+  labels:
+    app: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      containers:
+        - name: postgresql
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: mrhealth
+            - name: POSTGRES_USER
+              value: mrhealth_admin
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-secret
+                  key: postgres-password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: pg-data
+              mountPath: /var/lib/postgresql/data
+            - name: pg-init
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - mrhealth_admin
+                - -d
+                - mrhealth
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - mrhealth_admin
+                - -d
+                - mrhealth
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: pg-data
+          persistentVolumeClaim:
+            claimName: postgresql-pvc
+        - name: pg-init
+          configMap:
+            name: postgresql-init

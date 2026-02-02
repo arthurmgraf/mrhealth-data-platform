@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-init
+  namespace: mrhealth-db
+  labels:
+    app: postgresql
+data:
+  01_create_tables.sql: |
+    -- MR. HEALTH - Tabelas de referência da matriz
+    -- Executado automaticamente na inicialização do PostgreSQL
+
+    CREATE TABLE IF NOT EXISTS pais (
+        id_pais   INTEGER PRIMARY KEY,
+        nome_pais VARCHAR(100) NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS estado (
+        id_estado   INTEGER PRIMARY KEY,
+        id_pais     INTEGER NOT NULL REFERENCES pais(id_pais),
+        nome_estado VARCHAR(100) NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS unidade (
+        id_unidade   INTEGER PRIMARY KEY,
+        nome_unidade VARCHAR(200) NOT NULL,
+        id_estado    INTEGER NOT NULL REFERENCES estado(id_estado)
+    );
+
+    CREATE TABLE IF NOT EXISTS produto (
+        id_produto   INTEGER PRIMARY KEY,
+        nome_produto VARCHAR(200) NOT NULL
+    );
+
+  02_create_readonly_user.sql: |
+    -- Usuário read-only para extração via Cloud Function
+    DO $$
+    BEGIN
+        IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'mrh_extractor') THEN
+            CREATE ROLE mrh_extractor WITH LOGIN PASSWORD 'CHANGE_ME_extractor_readonly_2026';
+        END IF;
+    END
+    $$;
+
+    GRANT CONNECT ON DATABASE mrhealth TO mrh_extractor;
+    GRANT USAGE ON SCHEMA public TO mrh_extractor;
+    GRANT SELECT ON produto, unidade, estado, pais TO mrh_extractor;
+
+    -- Garantir que futuras tabelas também sejam acessíveis
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO mrh_extractor;

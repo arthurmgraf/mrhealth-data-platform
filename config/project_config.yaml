@@ -22,6 +22,14 @@ bigquery:
     gold: case_ficticio_gold
     monitoring: case_ficticio_monitoring
 
+postgresql:
+  host: ${PG_HOST}
+  port: 5432
+  database: mrhealth
+  admin_user: mrhealth_admin
+  extractor_user: mrh_extractor
+  ssh_user: ${PG_SSH_USER}
+
 cloud_functions:
   csv_processor:
     name: csv-processor
@@ -30,11 +38,35 @@ cloud_functions:
     timeout: 300s
     trigger_bucket: ${GCS_BUCKET_NAME}
     trigger_prefix: raw/csv_sales/
+  pg_reference_extractor:
+    name: pg-reference-extractor
+    runtime: python311
+    memory: 256MB
+    timeout: 300s
+    trigger: http
+    scheduler_cron: "0 1 * * *"
+    scheduler_timezone: America/Sao_Paulo
+  data_generator:
+    name: data-generator
+    runtime: python311
+    memory: 256MB
+    timeout: 300s
+    trigger: http
+    scheduler_cron: "0 10,12,14,16,18,20,22 * * *"
+    scheduler_timezone: America/Sao_Paulo
 
 cloud_scheduler:
   daily_pipeline:
     name: daily-transform-trigger
     schedule: "0 2 * * *"  # 2 AM daily
+    timezone: America/Sao_Paulo
+  pg_extraction:
+    name: pg-reference-extraction
+    schedule: "0 1 * * *"  # 1 AM daily (before sales pipeline)
+    timezone: America/Sao_Paulo
+  continuous_data:
+    name: continuous-data-generator
+    schedule: "0 10,12,14,16,18,20,22 * * *"
     timezone: America/Sao_Paulo
 
 free_tier_limits:
