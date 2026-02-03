@@ -1,0 +1,69 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "claude-code-mrhealth",
+  "elements": [
+    {"id":"title","type":"text","x":40,"y":20,"width":1000,"height":40,"text":"Apache Airflow DAG - mrhealth_daily_pipeline","fontSize":28,"fontFamily":3,"strokeColor":"#e67700"},
+    {"id":"subtitle","type":"text","x":40,"y":65,"width":1000,"height":20,"text":"Agenda: Diário às 03:00 UTC (00:00 BRT) | Executor: LocalExecutor | Retries: 2 | Catchup: False","fontSize":14,"fontFamily":3,"strokeColor":"#868e96"},
+
+    {"id":"task1_box","type":"rectangle","x":40,"y":130,"width":200,"height":100,"strokeColor":"#1971c2","backgroundColor":"#e7f5ff","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"task1_title","type":"text","x":55,"y":145,"width":170,"height":20,"text":"1. sense_new_files","fontSize":14,"fontFamily":3,"strokeColor":"#1971c2"},
+    {"id":"task1_details","type":"text","x":55,"y":170,"width":170,"height":50,"text":"GCSObjectsWithPrefix\nExistenceSensor\nPrefixo: raw/csv_sales/\nPoke: 300s, Mode: reschedule","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow1","type":"arrow","x":240,"y":180,"width":40,"height":0,"strokeColor":"#495057","strokeWidth":2,"points":[[0,0],[40,0]],"endArrowhead":"arrow"},
+
+    {"id":"task2_box","type":"rectangle","x":300,"y":130,"width":200,"height":100,"strokeColor":"#4263eb","backgroundColor":"#edf2ff","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"task2_title","type":"text","x":315,"y":145,"width":170,"height":20,"text":"2. run_silver_reference","fontSize":14,"fontFamily":3,"strokeColor":"#4263eb"},
+    {"id":"task2_details","type":"text","x":315,"y":170,"width":170,"height":50,"text":"BigQueryInsertJobOperator\nSQL: silver/01_reference.sql\nTabelas: products, units,\n        states, countries","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow2","type":"arrow","x":500,"y":180,"width":40,"height":0,"strokeColor":"#495057","strokeWidth":2,"points":[[0,0],[40,0]],"endArrowhead":"arrow"},
+
+    {"id":"task3_box","type":"rectangle","x":560,"y":130,"width":200,"height":100,"strokeColor":"#4263eb","backgroundColor":"#edf2ff","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"task3_title","type":"text","x":575,"y":145,"width":170,"height":20,"text":"3. run_silver_orders","fontSize":14,"fontFamily":3,"strokeColor":"#4263eb"},
+    {"id":"task3_details","type":"text","x":575,"y":170,"width":170,"height":50,"text":"BigQueryInsertJobOperator\nSQL: silver/02_orders.sql\n     silver/03_order_items.sql\nDedup + Transformar","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow3","type":"arrow","x":760,"y":180,"width":40,"height":0,"strokeColor":"#495057","strokeWidth":2,"points":[[0,0],[40,0]],"endArrowhead":"arrow"},
+
+    {"id":"task4_box","type":"rectangle","x":820,"y":130,"width":200,"height":100,"strokeColor":"#e67700","backgroundColor":"#fff9db","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"task4_title","type":"text","x":835,"y":145,"width":170,"height":20,"text":"4. build_gold_dims","fontSize":14,"fontFamily":3,"strokeColor":"#e67700"},
+    {"id":"task4_details","type":"text","x":835,"y":170,"width":170,"height":50,"text":"BigQueryInsertJobOperator\nSQL: gold/01-04_dim_*.sql\nTabelas: dim_date, dim_product\n        dim_unit, dim_geography","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow4","type":"arrow","x":920,"y":230,"width":0,"height":40,"strokeColor":"#495057","strokeWidth":2,"points":[[0,0],[0,40]],"endArrowhead":"arrow"},
+
+    {"id":"task5_box","type":"rectangle","x":820,"y":290,"width":200,"height":100,"strokeColor":"#c92a2a","backgroundColor":"#fff5f5","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"task5_title","type":"text","x":835,"y":305,"width":170,"height":20,"text":"5. build_gold_facts","fontSize":14,"fontFamily":3,"strokeColor":"#c92a2a"},
+    {"id":"task5_details","type":"text","x":835,"y":330,"width":170,"height":50,"text":"BigQueryInsertJobOperator\nSQL: gold/05_fact_sales.sql\n     gold/06_fact_order_items.sql\nParticionado por order_date","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow5","type":"arrow","x":820,"y":340,"width":-40,"height":0,"strokeColor":"#495057","strokeWidth":2,"points":[[0,0],[-40,0]],"endArrowhead":"arrow"},
+
+    {"id":"task6_box","type":"rectangle","x":560,"y":290,"width":200,"height":100,"strokeColor":"#7048e8","backgroundColor":"#f3f0ff","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"task6_title","type":"text","x":575,"y":305,"width":170,"height":20,"text":"6. build_aggregations","fontSize":14,"fontFamily":3,"strokeColor":"#7048e8"},
+    {"id":"task6_details","type":"text","x":575,"y":330,"width":170,"height":50,"text":"BigQueryInsertJobOperator\nSQL: gold/07-09_agg_*.sql\nTabelas: agg_daily_sales\n  agg_unit/product_perf","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow6","type":"arrow","x":560,"y":340,"width":-40,"height":0,"strokeColor":"#495057","strokeWidth":2,"points":[[0,0],[-40,0]],"endArrowhead":"arrow"},
+
+    {"id":"task7_box","type":"rectangle","x":300,"y":290,"width":200,"height":100,"strokeColor":"#2f9e44","backgroundColor":"#ebfbee","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"task7_title","type":"text","x":315,"y":305,"width":170,"height":20,"text":"7. validate_data_quality","fontSize":14,"fontFamily":3,"strokeColor":"#2f9e44"},
+    {"id":"task7_details","type":"text","x":315,"y":330,"width":170,"height":50,"text":"BigQueryCheckOperator\nVerificações: row_count > 0\nTabelas: fact_sales,\n        agg_daily_sales","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow7","type":"arrow","x":300,"y":340,"width":-40,"height":0,"strokeColor":"#495057","strokeWidth":2,"points":[[0,0],[-40,0]],"endArrowhead":"arrow"},
+
+    {"id":"task8_box","type":"rectangle","x":40,"y":290,"width":200,"height":100,"strokeColor":"#087f5b","backgroundColor":"#e6fcf5","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"task8_title","type":"text","x":55,"y":305,"width":170,"height":20,"text":"8. notify_completion","fontSize":14,"fontFamily":3,"strokeColor":"#087f5b"},
+    {"id":"task8_details","type":"text","x":55,"y":330,"width":170,"height":50,"text":"EmailOperator (opcional)\nou PythonOperator\nLoga mensagem de sucesso\ncom resumo da execução","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"dependency_box","type":"rectangle","x":40,"y":420,"width":980,"height":180,"strokeColor":"#495057","backgroundColor":"#f8f9fa","fillStyle":"solid","strokeWidth":2},
+    {"id":"dependency_title","type":"text","x":60,"y":435,"width":300,"height":22,"text":"Fluxo de Dependência das Tarefas","fontSize":16,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"dependency_diagram","type":"text","x":60,"y":470,"width":940,"height":120,"text":"sense_new_files >> run_silver_reference >> run_silver_orders >> build_gold_dims >> build_gold_facts >> build_aggregations >> validate_data_quality >> notify_completion\n\nProgressão por Camada:\n  [CHECK BRONZE] → [TRANSFORM SILVER] → [BUILD GOLD] → [AGREGAÇÕES] → [VALIDAÇÃO] → [NOTIFICAÇÃO]\n\nTempo (típico):\n  sense_new_files:     ~5 min (aguarda arquivos)     │  build_gold_dims:      ~30 seg\n  run_silver_reference: ~15 seg                      │  build_gold_facts:     ~45 seg\n  run_silver_orders:    ~30 seg                      │  build_aggregations:   ~30 seg\n  validate_data_quality: ~5 seg                      │  notify_completion:    ~1 seg\n                                                     │  TOTAL: ~8-10 minutos","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"config_box","type":"rectangle","x":40,"y":620,"width":480,"height":200,"strokeColor":"#1971c2","backgroundColor":"#e7f5ff","fillStyle":"solid","strokeWidth":2},
+    {"id":"config_title","type":"text","x":60,"y":635,"width":200,"height":22,"text":"Configuração do DAG","fontSize":14,"fontFamily":3,"strokeColor":"#1971c2"},
+    {"id":"config_content","type":"text","x":60,"y":665,"width":440,"height":145,"text":"dag_id: mrhealth_daily_pipeline\nschedule_interval: '0 3 * * *'  # 03:00 UTC = 00:00 BRT\nstart_date: datetime(2025, 1, 1)\ncatchup: False\ntags: ['mrhealth', 'daily', 'bigquery']\n\ndefault_args:\n  owner: 'airflow'\n  retries: 2\n  retry_delay: timedelta(minutes=5)\n  execution_timeout: timedelta(minutes=30)\n  email_on_failure: True\n  email: ['ops@datalakers.com']","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"operators_box","type":"rectangle","x":540,"y":620,"width":480,"height":200,"strokeColor":"#e67700","backgroundColor":"#fff9db","fillStyle":"solid","strokeWidth":2},
+    {"id":"operators_title","type":"text","x":560,"y":635,"width":200,"height":22,"text":"Operadores Utilizados","fontSize":14,"fontFamily":3,"strokeColor":"#e67700"},
+    {"id":"operators_content","type":"text","x":560,"y":665,"width":440,"height":145,"text":"GCSObjectsWithPrefixExistenceSensor:\n  • Aguarda arquivos no bucket GCS com prefixo\n  • Mode: reschedule (libera slot do worker)\n  • Intervalo de poke: 300 segundos\n\nBigQueryInsertJobOperator:\n  • Executa scripts SQL do diretório sql/\n  • Usa Jinja templating para datas: {{ ds }}\n  • Location: US (BigQuery multi-região)\n\nBigQueryCheckOperator:\n  • Valida qualidade de dados com checks SQL\n  • Falha o DAG se checks não passarem\n\nPythonOperator / EmailOperator:\n  • Envia notificação de conclusão","fontSize":10,"fontFamily":3,"strokeColor":"#495057"}
+  ],
+  "appState": {"viewBackgroundColor":"#ffffff","gridSize":null},
+  "files": {}
+}

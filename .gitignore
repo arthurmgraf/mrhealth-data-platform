@@ -5,6 +5,8 @@ keys/
 .env
 .env.*
 !.env.example
+docs/CREDENCIAIS_SEGURAS.md
+k3s-config.yaml
 
 # Python
 __pycache__/

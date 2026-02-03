@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: superset-config
+  namespace: mrhealth-db
+data:
+  superset_config.py: |
+    import os
+    
+    # Security
+    SECRET_KEY = os.environ.get('SUPERSET_SECRET_KEY', 'mrhealth-superset-default-key')
+    
+    # Database
+    SQLALCHEMY_DATABASE_URI = 'sqlite:////app/superset_home/superset.db'
+    
+    # Feature flags
+    FEATURE_FLAGS = {
+        "ENABLE_TEMPLATE_PROCESSING": True,
+    }
+    
+    # BigQuery connection (via service account)
+    GOOGLE_APPLICATION_CREDENTIALS = '/app/keys/gcp.json'

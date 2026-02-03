@@ -1,0 +1,115 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: superset-pvc
+  namespace: mrhealth-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: superset
+  namespace: mrhealth-db
+  labels:
+    app: superset
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: superset
+  template:
+    metadata:
+      labels:
+        app: superset
+    spec:
+      initContainers:
+        - name: superset-init
+          image: apache/superset:3.1.0
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              superset db upgrade
+              superset fab create-admin \
+                --username admin \
+                --firstname Admin \
+                --lastname User \
+                --email admin@mrhealth.local \
+                --password admin || true
+              superset init
+              superset load_examples || true
+          env:
+            - name: SUPERSET_SECRET_KEY
+              value: "mrhealth-superset-k8s-key-2026"
+          volumeMounts:
+            - name: superset-data
+              mountPath: /app/superset_home
+            - name: superset-config
+              mountPath: /app/pythonpath/superset_config.py
+              subPath: superset_config.py
+      containers:
+        - name: superset
+          image: apache/superset:3.1.0
+          command: ["gunicorn"]
+          args:
+            - "--bind"
+            - "0.0.0.0:8088"
+            - "--workers"
+            - "2"
+            - "--worker-class"
+            - "gthread"
+            - "--threads"
+            - "4"
+            - "--timeout"
+            - "120"
+            - "superset.app:create_app()"
+          ports:
+            - containerPort: 8088
+          env:
+            - name: SUPERSET_SECRET_KEY
+              value: "mrhealth-superset-k8s-key-2026"
+          volumeMounts:
+            - name: superset-data
+              mountPath: /app/superset_home
+            - name: superset-config
+              mountPath: /app/pythonpath/superset_config.py
+              subPath: superset_config.py
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8088
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1.5Gi"
+              cpu: "1000m"
+      volumes:
+        - name: superset-data
+          persistentVolumeClaim:
+            claimName: superset-pvc
+        - name: superset-config
+          configMap:
+            name: superset-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: superset
+  namespace: mrhealth-db
+spec:
+  selector:
+    app: superset
+  ports:
+    - port: 8088
+      targetPort: 8088
+      nodePort: 30188
+  type: NodePort

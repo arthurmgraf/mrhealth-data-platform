@@ -1,0 +1,53 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "claude-code-mrhealth",
+  "elements": [
+    {"id":"title","type":"text","x":40,"y":20,"width":1200,"height":40,"text":"Camada Bronze BigQuery - Schema de Dados Brutos","fontSize":28,"fontFamily":3,"strokeColor":"#9c6644"},
+    {"id":"subtitle","type":"text","x":40,"y":65,"width":1200,"height":20,"text":"Dataset: case_ficticio_bronze | Modo: Append-only | Validação: schemas PyArrow | Particionamento: _ingest_date","fontSize":14,"fontFamily":3,"strokeColor":"#868e96"},
+
+    {"id":"orders_box","type":"rectangle","x":40,"y":120,"width":380,"height":380,"strokeColor":"#8b5a2b","backgroundColor":"#fef3c7","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"orders_header","type":"rectangle","x":40,"y":120,"width":380,"height":40,"strokeColor":"#8b5a2b","backgroundColor":"#9c6644","fillStyle":"solid","strokeWidth":2},
+    {"id":"orders_title","type":"text","x":55,"y":130,"width":350,"height":25,"text":"orders (Transacional - Cabeçalhos de Vendas)","fontSize":16,"fontFamily":3,"strokeColor":"#ffffff"},
+    {"id":"orders_cols","type":"text","x":55,"y":175,"width":350,"height":310,"text":"PK id_pedido          STRING         Chave Primária\n   id_unidade         INT64          FK → units\n   tipo_pedido        STRING         ONLINE/PHYSICAL\n   status_pedido      STRING         Finalizado/Cancelado/Pendente\n   valor_pedido       FLOAT64        Total do pedido (R$)\n   taxa_entrega       FLOAT64        Taxa de entrega (R$)\n   dt_pedido          DATE           Data do pedido\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nColunas de Metadados:\n   _source_file       STRING         Nome do arquivo CSV\n   _ingest_timestamp  TIMESTAMP      Hora de carga (UTC)\n   _ingest_date       DATE           Chave de partição\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nVolume: ~5.000 pedidos/dia (100/unidade)\nFormato: pedidos_YYYYMMDD.csv\nGatilho: Eventarc no upload GCS\nCarga: WRITE_APPEND (imutável)","fontSize":11,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"items_box","type":"rectangle","x":450,"y":120,"width":380,"height":380,"strokeColor":"#8b5a2b","backgroundColor":"#fef3c7","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"items_header","type":"rectangle","x":450,"y":120,"width":380,"height":40,"strokeColor":"#8b5a2b","backgroundColor":"#9c6644","fillStyle":"solid","strokeWidth":2},
+    {"id":"items_title","type":"text","x":465,"y":130,"width":350,"height":25,"text":"order_items (Transacional - Linhas de Itens)","fontSize":16,"fontFamily":3,"strokeColor":"#ffffff"},
+    {"id":"items_cols","type":"text","x":465,"y":175,"width":350,"height":310,"text":"PK id_item_pedido     STRING         Chave Primária\nFK id_pedido          STRING         FK → orders\nFK id_produto         INT64          FK → products\n   qtd                FLOAT64        Quantidade pedida\n   vlr_item           FLOAT64        Preço unitário (R$)\n   observacao         STRING         Instruções especiais\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nColunas de Metadados:\n   _source_file       STRING         Nome do arquivo CSV\n   _ingest_timestamp  TIMESTAMP      Hora de carga (UTC)\n   _ingest_date       DATE           Chave de partição\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nVolume: ~15.000-25.000 itens/dia\nMédia: 3-5 itens por pedido\nFormato: itens_pedido_YYYYMMDD.csv\nRelacionamento: N:1 com orders\nCarga: WRITE_APPEND (imutável)","fontSize":11,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"products_box","type":"rectangle","x":860,"y":120,"width":340,"height":230,"strokeColor":"#8b5a2b","backgroundColor":"#fef3c7","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"products_header","type":"rectangle","x":860,"y":120,"width":340,"height":40,"strokeColor":"#8b5a2b","backgroundColor":"#9c6644","fillStyle":"solid","strokeWidth":2},
+    {"id":"products_title","type":"text","x":875,"y":130,"width":310,"height":25,"text":"products (Referência - Cardápio)","fontSize":16,"fontFamily":3,"strokeColor":"#ffffff"},
+    {"id":"products_cols","type":"text","x":875,"y":175,"width":310,"height":165,"text":"PK id_produto         INT64          Chave Primária\n   nome_produto       STRING         Nome do produto\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nColunas de Metadados:\n   _source_file       STRING\n   _ingest_timestamp  TIMESTAMP\n   _ingest_date       DATE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nLinhas: ~200 produtos\nOrigem: PostgreSQL → GCS\nAtualização: Diária (pg-reference-extractor)","fontSize":11,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"units_box","type":"rectangle","x":860,"y":370,"width":340,"height":230,"strokeColor":"#8b5a2b","backgroundColor":"#fef3c7","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"units_header","type":"rectangle","x":860,"y":370,"width":340,"height":40,"strokeColor":"#8b5a2b","backgroundColor":"#9c6644","fillStyle":"solid","strokeWidth":2},
+    {"id":"units_title","type":"text","x":875,"y":380,"width":310,"height":25,"text":"units (Referência - Restaurantes)","fontSize":16,"fontFamily":3,"strokeColor":"#ffffff"},
+    {"id":"units_cols","type":"text","x":875,"y":425,"width":310,"height":165,"text":"PK id_unidade         INT64          Chave Primária\n   nome_unidade       STRING         Nome da unidade\nFK id_estado          INT64          FK → states\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nColunas de Metadados:\n   _source_file       STRING\n   _ingest_timestamp  TIMESTAMP\n   _ingest_date       DATE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nLinhas: 50 unidades\nOrigem: PostgreSQL → GCS\nAtualização: Diária","fontSize":11,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"states_box","type":"rectangle","x":40,"y":520,"width":340,"height":200,"strokeColor":"#8b5a2b","backgroundColor":"#fef3c7","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"states_header","type":"rectangle","x":40,"y":520,"width":340,"height":40,"strokeColor":"#8b5a2b","backgroundColor":"#9c6644","fillStyle":"solid","strokeWidth":2},
+    {"id":"states_title","type":"text","x":55,"y":530,"width":310,"height":25,"text":"states (Referência - Geografia)","fontSize":16,"fontFamily":3,"strokeColor":"#ffffff"},
+    {"id":"states_cols","type":"text","x":55,"y":575,"width":310,"height":135,"text":"PK id_estado          INT64          Chave Primária\n   nome_estado        STRING         Nome do estado\nFK id_pais            INT64          FK → countries\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMetadados: _source_file, _ingest_*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nLinhas: 3 (RS, SC, PR)\nOrigem: PostgreSQL → GCS","fontSize":11,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"countries_box","type":"rectangle","x":410,"y":520,"width":340,"height":200,"strokeColor":"#8b5a2b","backgroundColor":"#fef3c7","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"countries_header","type":"rectangle","x":410,"y":520,"width":340,"height":40,"strokeColor":"#8b5a2b","backgroundColor":"#9c6644","fillStyle":"solid","strokeWidth":2},
+    {"id":"countries_title","type":"text","x":425,"y":530,"width":310,"height":25,"text":"countries (Referência - Geografia)","fontSize":16,"fontFamily":3,"strokeColor":"#ffffff"},
+    {"id":"countries_cols","type":"text","x":425,"y":575,"width":310,"height":135,"text":"PK id_pais            INT64          Chave Primária\n   nome_pais          STRING         Nome do país\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMetadados: _source_file, _ingest_*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nLinhas: 1 (Brasil)\nOrigem: PostgreSQL → GCS","fontSize":11,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"fk_orders_items","type":"arrow","x":420,"y":300,"width":30,"height":0,"strokeColor":"#1971c2","strokeWidth":2,"points":[[0,0],[30,0]],"endArrowhead":"arrow","startArrowhead":"arrow"},
+    {"id":"fk_label1","type":"text","x":425,"y":280,"width":30,"height":15,"text":"1:N","fontSize":10,"fontFamily":3,"strokeColor":"#1971c2"},
+
+    {"id":"fk_items_products","type":"arrow","x":830,"y":280,"width":30,"height":0,"strokeColor":"#1971c2","strokeWidth":2,"points":[[0,0],[30,0]],"endArrowhead":"arrow"},
+    {"id":"fk_units_states","type":"arrow","x":860,"y":540,"width":-120,"height":0,"strokeColor":"#1971c2","strokeWidth":2,"points":[[0,0],[-120,0]],"endArrowhead":"arrow"},
+    {"id":"fk_states_countries","type":"arrow","x":380,"y":620,"width":30,"height":0,"strokeColor":"#1971c2","strokeWidth":2,"points":[[0,0],[30,0]],"endArrowhead":"arrow"},
+
+    {"id":"ingestion_box","type":"rectangle","x":40,"y":750,"width":1160,"height":150,"strokeColor":"#d9480f","backgroundColor":"#fff4e6","fillStyle":"solid","strokeWidth":2},
+    {"id":"ingestion_title","type":"text","x":60,"y":765,"width":300,"height":22,"text":"Pipeline de Ingestão (Cloud Function csv-processor)","fontSize":14,"fontFamily":3,"strokeColor":"#d9480f"},
+    {"id":"ingestion_content","type":"text","x":60,"y":795,"width":550,"height":95,"text":"Gatilho: Eventarc (google.cloud.storage.object.v1.finalized)\nBucket: dados-sales-machine-learning\nPrefixo: raw/\n\nEtapas de Validação:\n  1. PyArrow schema enforcement (verificação de tipos)\n  2. Validação de campos obrigatórios (PKs não nulas)\n  3. Normalização de formato de data (DD/MM/YYYY → DATE)","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"ingestion_config","type":"text","x":630,"y":795,"width":550,"height":95,"text":"Configuração da Cloud Function:\n  Runtime: Python 3.11\n  Memória: 512MB\n  Timeout: 60 segundos\n  Entry Point: process_csv\n\nConfiguração de Carga:\n  Modo: WRITE_APPEND (append-only, imutável)\n  Particionamento: _ingest_date (DATE)\n  Clustering: id_unidade (para queries por unidade)","fontSize":10,"fontFamily":3,"strokeColor":"#495057"}
+  ],
+  "appState": {"viewBackgroundColor":"#ffffff","gridSize":null},
+  "files": {}
+}

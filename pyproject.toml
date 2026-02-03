@@ -1,0 +1,65 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mr-health-data-platform"
+version = "1.0.0"
+description = "MR. HEALTH Data Platform - Medallion Architecture on GCP with BigQuery, Cloud Functions, Airflow, and Superset"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Arthur Graf"}
+]
+keywords = ["data-engineering", "bigquery", "medallion-architecture", "gcp", "airflow"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "google-cloud-bigquery>=3.17.0",
+    "google-cloud-storage>=2.14.0",
+    "google-cloud-secret-manager>=2.18.0",
+    "faker>=22.0.0",
+    "pandas>=2.1.0",
+    "pyyaml>=6.0.1",
+    "psycopg2-binary>=2.9.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.12.0",
+    "ruff>=0.1.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.isort]
+known-first-party = ["scripts", "cloud_functions", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+pythonpath = ["scripts"]
+
+[tool.coverage.run]
+source = ["scripts", "cloud_functions"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+]

@@ -1,0 +1,63 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "claude-code-mrhealth",
+  "elements": [
+    {"id":"title","type":"text","x":40,"y":20,"width":1000,"height":40,"text":"Cloud Functions - Arquitetura Detalhada","fontSize":28,"fontFamily":3,"strokeColor":"#f76707"},
+    {"id":"subtitle","type":"text","x":40,"y":65,"width":1000,"height":20,"text":"2ª Geração | Python 3.11 | Processamento Orientado a Eventos | Zero Gerenciamento de Infraestrutura","fontSize":14,"fontFamily":3,"strokeColor":"#868e96"},
+
+    {"id":"cf1_zone","type":"rectangle","x":40,"y":120,"width":500,"height":450,"strokeColor":"#d9480f","backgroundColor":"#fff4e6","fillStyle":"solid","strokeWidth":3,"roundness":{"type":3}},
+    {"id":"cf1_title","type":"text","x":60,"y":135,"width":460,"height":28,"text":"csv-processor","fontSize":20,"fontFamily":3,"strokeColor":"#d9480f"},
+    {"id":"cf1_desc","type":"text","x":60,"y":168,"width":460,"height":15,"text":"Validação e carga de CSV para BigQuery orientada a eventos","fontSize":11,"fontFamily":3,"strokeColor":"#868e96"},
+
+    {"id":"cf1_trigger","type":"rectangle","x":60,"y":195,"width":220,"height":90,"strokeColor":"#1971c2","backgroundColor":"#e7f5ff","fillStyle":"solid","strokeWidth":1},
+    {"id":"cf1_trigger_title","type":"text","x":75,"y":205,"width":190,"height":18,"text":"Gatilho","fontSize":12,"fontFamily":3,"strokeColor":"#1971c2"},
+    {"id":"cf1_trigger_content","type":"text","x":75,"y":228,"width":190,"height":50,"text":"Tipo: Eventarc\nEvento: storage.object.finalized\nBucket: dados-sales-*\nPrefixo: raw/csv_sales/","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"cf1_config","type":"rectangle","x":300,"y":195,"width":220,"height":90,"strokeColor":"#087f5b","backgroundColor":"#e6fcf5","fillStyle":"solid","strokeWidth":1},
+    {"id":"cf1_config_title","type":"text","x":315,"y":205,"width":190,"height":18,"text":"Configuração","fontSize":12,"fontFamily":3,"strokeColor":"#087f5b"},
+    {"id":"cf1_config_content","type":"text","x":315,"y":228,"width":190,"height":50,"text":"Memória: 512MB\nTimeout: 60 segundos\nMax Instâncias: 10\nMin Instâncias: 0 (escala para zero)","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"cf1_flow","type":"rectangle","x":60,"y":300,"width":460,"height":180,"strokeColor":"#495057","backgroundColor":"#fff","fillStyle":"solid","strokeWidth":1},
+    {"id":"cf1_flow_title","type":"text","x":75,"y":310,"width":430,"height":18,"text":"Fluxo de Processamento","fontSize":12,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"cf1_flow_content","type":"text","x":75,"y":333,"width":430,"height":140,"text":"1. Receber CloudEvent do Eventarc\n   └── Extrair: bucket, object_name, content_type\n\n2. Validar tipo de arquivo e convenção de nomenclatura\n   └── Padrão: (pedidos|itens_pedido)_YYYYMMDD.csv\n\n3. Baixar CSV do GCS\n   └── Stream para pandas DataFrame\n\n4. Validar schema com PyArrow\n   └── Aplicar tipos de coluna, verificar campos obrigatórios\n\n5. Carregar no BigQuery Bronze\n   └── Modo: WRITE_APPEND | Partição: _ingest_date\n\n6. Logar métricas de sucesso no Cloud Logging","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"cf1_deps","type":"rectangle","x":60,"y":495,"width":460,"height":60,"strokeColor":"#7048e8","backgroundColor":"#f3f0ff","fillStyle":"solid","strokeWidth":1},
+    {"id":"cf1_deps_title","type":"text","x":75,"y":505,"width":200,"height":18,"text":"Dependências","fontSize":11,"fontFamily":3,"strokeColor":"#7048e8"},
+    {"id":"cf1_deps_content","type":"text","x":75,"y":525,"width":430,"height":25,"text":"google-cloud-bigquery, google-cloud-storage, pandas, pyarrow, functions-framework","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"cf2_zone","type":"rectangle","x":570,"y":120,"width":500,"height":450,"strokeColor":"#9c36b5","backgroundColor":"#f8f0fc","fillStyle":"solid","strokeWidth":3,"roundness":{"type":3}},
+    {"id":"cf2_title","type":"text","x":590,"y":135,"width":460,"height":28,"text":"pg-reference-extractor","fontSize":20,"fontFamily":3,"strokeColor":"#9c36b5"},
+    {"id":"cf2_desc","type":"text","x":590,"y":168,"width":460,"height":15,"text":"Extrair dados de referência do PostgreSQL via SSH tunnel","fontSize":11,"fontFamily":3,"strokeColor":"#868e96"},
+
+    {"id":"cf2_trigger","type":"rectangle","x":590,"y":195,"width":220,"height":90,"strokeColor":"#1971c2","backgroundColor":"#e7f5ff","fillStyle":"solid","strokeWidth":1},
+    {"id":"cf2_trigger_title","type":"text","x":605,"y":205,"width":190,"height":18,"text":"Gatilho","fontSize":12,"fontFamily":3,"strokeColor":"#1971c2"},
+    {"id":"cf2_trigger_content","type":"text","x":605,"y":228,"width":190,"height":50,"text":"Tipo: HTTP (Cloud Scheduler)\nAgenda: 0 4 * * * (01:00 BRT)\nMétodo: POST\nAuth: Service Account","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"cf2_config","type":"rectangle","x":830,"y":195,"width":220,"height":90,"strokeColor":"#087f5b","backgroundColor":"#e6fcf5","fillStyle":"solid","strokeWidth":1},
+    {"id":"cf2_config_title","type":"text","x":845,"y":205,"width":190,"height":18,"text":"Configuração","fontSize":12,"fontFamily":3,"strokeColor":"#087f5b"},
+    {"id":"cf2_config_content","type":"text","x":845,"y":228,"width":190,"height":50,"text":"Memória: 256MB\nTimeout: 300 segundos\nMax Instâncias: 1\nRetry: 3x com backoff","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"cf2_flow","type":"rectangle","x":590,"y":300,"width":460,"height":180,"strokeColor":"#495057","backgroundColor":"#fff","fillStyle":"solid","strokeWidth":1},
+    {"id":"cf2_flow_title","type":"text","x":605,"y":310,"width":430,"height":18,"text":"Fluxo de Processamento","fontSize":12,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"cf2_flow_content","type":"text","x":605,"y":333,"width":430,"height":140,"text":"1. Recuperar segredos do Secret Manager\n   └── pg-host, pg-ssh-user, pg-ssh-private-key, pg-db-*\n\n2. Estabelecer SSH tunnel para nó K3s\n   └── Paramiko: autenticação com chave Ed25519\n   └── Port forward: local:5432 → node:30432 → pg:5432\n\n3. Conectar ao banco PostgreSQL\n   └── psycopg2: usuário mrhealth_readonly (apenas SELECT)\n\n4. Extrair tabelas de referência\n   └── SELECT * FROM pais, estado, unidade, produto\n\n5. Upload de CSVs para GCS\n   └── Caminho: raw/reference_data/{tabela}.csv\n\n6. Disparar csv-processor (opcional) ou aguardar carga Bronze","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"cf2_deps","type":"rectangle","x":590,"y":495,"width":460,"height":60,"strokeColor":"#7048e8","backgroundColor":"#f3f0ff","fillStyle":"solid","strokeWidth":1},
+    {"id":"cf2_deps_title","type":"text","x":605,"y":505,"width":200,"height":18,"text":"Dependências","fontSize":11,"fontFamily":3,"strokeColor":"#7048e8"},
+    {"id":"cf2_deps_content","type":"text","x":605,"y":525,"width":430,"height":25,"text":"paramiko, psycopg2-binary, google-cloud-storage, google-cloud-secret-manager, functions-framework","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"secrets_box","type":"rectangle","x":40,"y":590,"width":500,"height":130,"strokeColor":"#c92a2a","backgroundColor":"#fff5f5","fillStyle":"solid","strokeWidth":2},
+    {"id":"secrets_title","type":"text","x":60,"y":605,"width":200,"height":22,"text":"Integração Secret Manager","fontSize":14,"fontFamily":3,"strokeColor":"#c92a2a"},
+    {"id":"secrets_content","type":"text","x":60,"y":635,"width":460,"height":75,"text":"Segredos Usados pelo pg-reference-extractor:\n  • projects/PROJECT_ID/secrets/pg-host/versions/latest\n  • projects/PROJECT_ID/secrets/pg-ssh-user/versions/latest\n  • projects/PROJECT_ID/secrets/pg-ssh-private-key/versions/latest  (chave privada Ed25519)\n  • projects/PROJECT_ID/secrets/pg-db-name/versions/latest\n  • projects/PROJECT_ID/secrets/pg-db-user/versions/latest\n  • projects/PROJECT_ID/secrets/pg-db-password/versions/latest","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"error_box","type":"rectangle","x":570,"y":590,"width":500,"height":130,"strokeColor":"#e03131","backgroundColor":"#fff5f5","fillStyle":"solid","strokeWidth":2},
+    {"id":"error_title","type":"text","x":590,"y":605,"width":200,"height":22,"text":"Tratamento de Erros","fontSize":14,"fontFamily":3,"strokeColor":"#e03131"},
+    {"id":"error_content","type":"text","x":590,"y":635,"width":460,"height":75,"text":"csv-processor:\n  • Schema inválido → Mover arquivo para quarantine/, logar erro\n  • Falha na carga BigQuery → Retry com backoff exponencial\n  • Timeout → Arquivo permanece em raw/, será retentado\n\npg-reference-extractor:\n  • Falha de conexão SSH → Retry 3x com delay de 30s\n  • Timeout PostgreSQL → Logar warning, continuar com próxima tabela\n  • Extração parcial → Upload apenas das tabelas com sucesso","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"monitoring_box","type":"rectangle","x":40,"y":740,"width":1030,"height":80,"strokeColor":"#2f9e44","backgroundColor":"#ebfbee","fillStyle":"solid","strokeWidth":2},
+    {"id":"monitoring_title","type":"text","x":60,"y":755,"width":200,"height":22,"text":"Monitoramento & Observabilidade","fontSize":14,"fontFamily":3,"strokeColor":"#2f9e44"},
+    {"id":"monitoring_content","type":"text","x":60,"y":785,"width":990,"height":30,"text":"Cloud Logging: Logs JSON estruturados (severity, function_name, file_processed, rows_loaded, execution_time_ms)\nCloud Monitoring: Contagem de execuções, taxa de erro, percentis de latência, uso de memória\nAlertas: Taxa de erro > 5% por 5 minutos → Notificação PagerDuty/Slack","fontSize":9,"fontFamily":3,"strokeColor":"#495057"}
+  ],
+  "appState": {"viewBackgroundColor":"#ffffff","gridSize":null},
+  "files": {}
+}

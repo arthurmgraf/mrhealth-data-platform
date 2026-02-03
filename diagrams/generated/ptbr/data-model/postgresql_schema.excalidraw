@@ -1,0 +1,49 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "claude-code-mrhealth",
+  "elements": [
+    {"id":"title","type":"text","x":40,"y":20,"width":900,"height":40,"text":"PostgreSQL 16 - Schema de Dados de Referência (Cluster K3s)","fontSize":28,"fontFamily":3,"strokeColor":"#336791"},
+    {"id":"subtitle","type":"text","x":40,"y":65,"width":900,"height":20,"text":"Namespace: mrhealth-db | NodePort: 30432 | Acesso: SSH Tunnel + usuário mrhealth_readonly","fontSize":14,"fontFamily":3,"strokeColor":"#868e96"},
+
+    {"id":"pais_box","type":"rectangle","x":380,"y":120,"width":220,"height":180,"strokeColor":"#336791","backgroundColor":"#e8f4f8","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"pais_header","type":"rectangle","x":380,"y":120,"width":220,"height":35,"strokeColor":"#336791","backgroundColor":"#336791","fillStyle":"solid","strokeWidth":2},
+    {"id":"pais_title","type":"text","x":390,"y":127,"width":200,"height":22,"text":"pais","fontSize":16,"fontFamily":3,"strokeColor":"#ffffff"},
+    {"id":"pais_pk","type":"text","x":390,"y":165,"width":200,"height":18,"text":"PK id_pais SERIAL","fontSize":12,"fontFamily":3,"strokeColor":"#c92a2a"},
+    {"id":"pais_col1","type":"text","x":390,"y":188,"width":200,"height":18,"text":"   nome_pais VARCHAR(100) NOT NULL","fontSize":11,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"pais_rows","type":"text","x":390,"y":220,"width":200,"height":40,"text":"━━━━━━━━━━━━━━━━━━━━━\nLinhas: 1\nDados: Brasil","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
+
+    {"id":"estado_box","type":"rectangle","x":380,"y":340,"width":220,"height":220,"strokeColor":"#336791","backgroundColor":"#e8f4f8","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"estado_header","type":"rectangle","x":380,"y":340,"width":220,"height":35,"strokeColor":"#336791","backgroundColor":"#336791","fillStyle":"solid","strokeWidth":2},
+    {"id":"estado_title","type":"text","x":390,"y":347,"width":200,"height":22,"text":"estado","fontSize":16,"fontFamily":3,"strokeColor":"#ffffff"},
+    {"id":"estado_pk","type":"text","x":390,"y":385,"width":200,"height":18,"text":"PK id_estado SERIAL","fontSize":12,"fontFamily":3,"strokeColor":"#c92a2a"},
+    {"id":"estado_col1","type":"text","x":390,"y":408,"width":200,"height":18,"text":"   nome_estado VARCHAR(100) NOT NULL","fontSize":11,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"estado_fk","type":"text","x":390,"y":431,"width":200,"height":18,"text":"FK id_pais INT → pais","fontSize":11,"fontFamily":3,"strokeColor":"#1971c2"},
+    {"id":"estado_rows","type":"text","x":390,"y":465,"width":200,"height":70,"text":"━━━━━━━━━━━━━━━━━━━━━\nLinhas: 3\nDados:\n  • Rio Grande do Sul (RS)\n  • Santa Catarina (SC)\n  • Paraná (PR)","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
+
+    {"id":"unidade_box","type":"rectangle","x":100,"y":600,"width":280,"height":240,"strokeColor":"#336791","backgroundColor":"#e8f4f8","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"unidade_header","type":"rectangle","x":100,"y":600,"width":280,"height":35,"strokeColor":"#336791","backgroundColor":"#336791","fillStyle":"solid","strokeWidth":2},
+    {"id":"unidade_title","type":"text","x":110,"y":607,"width":260,"height":22,"text":"unidade (Restaurantes)","fontSize":16,"fontFamily":3,"strokeColor":"#ffffff"},
+    {"id":"unidade_pk","type":"text","x":110,"y":645,"width":260,"height":18,"text":"PK id_unidade SERIAL","fontSize":12,"fontFamily":3,"strokeColor":"#c92a2a"},
+    {"id":"unidade_col1","type":"text","x":110,"y":668,"width":260,"height":18,"text":"   nome_unidade VARCHAR(200) NOT NULL","fontSize":11,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"unidade_fk","type":"text","x":110,"y":691,"width":260,"height":18,"text":"FK id_estado INT → estado","fontSize":11,"fontFamily":3,"strokeColor":"#1971c2"},
+    {"id":"unidade_rows","type":"text","x":110,"y":725,"width":260,"height":100,"text":"━━━━━━━━━━━━━━━━━━━━━━━━━━━\nLinhas: 50\nDistribuição:\n  • RS: 20 unidades (40%)\n  • SC: 15 unidades (30%)\n  • PR: 15 unidades (30%)\nNomenclatura: MR. HEALTH {Cidade} #{n}","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
+
+    {"id":"produto_box","type":"rectangle","x":600,"y":600,"width":280,"height":240,"strokeColor":"#336791","backgroundColor":"#e8f4f8","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"produto_header","type":"rectangle","x":600,"y":600,"width":280,"height":35,"strokeColor":"#336791","backgroundColor":"#336791","fillStyle":"solid","strokeWidth":2},
+    {"id":"produto_title","type":"text","x":610,"y":607,"width":260,"height":22,"text":"produto (Itens do Cardápio)","fontSize":16,"fontFamily":3,"strokeColor":"#ffffff"},
+    {"id":"produto_pk","type":"text","x":610,"y":645,"width":260,"height":18,"text":"PK id_produto SERIAL","fontSize":12,"fontFamily":3,"strokeColor":"#c92a2a"},
+    {"id":"produto_col1","type":"text","x":610,"y":668,"width":260,"height":18,"text":"   nome_produto VARCHAR(200) NOT NULL","fontSize":11,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"produto_rows","type":"text","x":610,"y":705,"width":260,"height":120,"text":"━━━━━━━━━━━━━━━━━━━━━━━━━━━\nLinhas: ~200\nCategorias:\n  • Pratos Principais (~50)\n  • Bebidas (~40)\n  • Sobremesas (~30)\n  • Acompanhamentos (~30)\n  • Combos (~30)\n  • Outros (~20)","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
+
+    {"id":"fk_pais_estado","type":"arrow","x":490,"y":300,"width":0,"height":40,"strokeColor":"#1971c2","strokeWidth":2,"points":[[0,0],[0,40]],"endArrowhead":"arrow"},
+    {"id":"fk_estado_unidade","type":"arrow","x":380,"y":505,"width":-100,"height":95,"strokeColor":"#1971c2","strokeWidth":2,"points":[[0,0],[-100,50],[-100,95]],"endArrowhead":"arrow"},
+
+    {"id":"legend_box","type":"rectangle","x":40,"y":880,"width":940,"height":120,"strokeColor":"#495057","backgroundColor":"#f8f9fa","fillStyle":"solid","strokeWidth":1},
+    {"id":"legend_title","type":"text","x":60,"y":895,"width":200,"height":20,"text":"Legenda & Informações de Acesso","fontSize":14,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"legend_content","type":"text","x":60,"y":925,"width":450,"height":65,"text":"PK - Primary Key (Chave Primária) - Identificador único\nFK - Foreign Key (Chave Estrangeira) - Referência tabela pai\n\nRelacionamentos:\n  pais (1) ←→ (N) estado ←→ (N) unidade","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"legend_access","type":"text","x":530,"y":925,"width":430,"height":65,"text":"Configuração de Acesso:\n  Host: IP do Nó K3s (via SSH tunnel)\n  Porta: 30432 (NodePort) → 5432 (interna)\n  Usuário: mrhealth_readonly (apenas SELECT)\n  Banco: mrhealth\n  Extração: Diária via Cloud Function pg-reference-extractor","fontSize":10,"fontFamily":3,"strokeColor":"#495057"}
+  ],
+  "appState": {"viewBackgroundColor":"#ffffff","gridSize":null},
+  "files": {}
+}

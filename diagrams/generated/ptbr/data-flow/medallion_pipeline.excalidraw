@@ -1,0 +1,78 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "claude-code-mrhealth",
+  "elements": [
+    {"id":"title","type":"text","x":40,"y":20,"width":800,"height":40,"text":"🔄 Medallion Architecture - Pipeline de Fluxo de Dados","fontSize":28,"fontFamily":3,"strokeColor":"#1864ab"},
+    {"id":"subtitle","type":"text","x":40,"y":65,"width":800,"height":20,"text":"Bronze (Bruto) → Silver (Limpo) → Gold (Negócio) | Ingestão Orientada a Eventos + Orquestração Diária","fontSize":14,"fontFamily":3,"strokeColor":"#868e96"},
+
+    {"id":"source1_box","type":"rectangle","x":40,"y":130,"width":180,"height":140,"strokeColor":"#495057","backgroundColor":"#f8f9fa","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"source1_title","type":"text","x":55,"y":145,"width":150,"height":22,"text":"🍽️ Sistemas POS","fontSize":14,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"source1_content","type":"text","x":55,"y":175,"width":150,"height":85,"text":"50 Unidades Restaurante\nRegião Sul (RS, SC, PR)\n\nCSVs Gerados:\n• pedidos.csv\n• itens_pedido.csv\n\n~100 arquivos/dia","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"source2_box","type":"rectangle","x":40,"y":290,"width":180,"height":140,"strokeColor":"#336791","backgroundColor":"#e8f4f8","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"source2_title","type":"text","x":55,"y":305,"width":150,"height":22,"text":"🐘 PostgreSQL","fontSize":14,"fontFamily":3,"strokeColor":"#336791"},
+    {"id":"source2_content","type":"text","x":55,"y":335,"width":150,"height":85,"text":"Cluster K3s\nDados de Referência:\n• pais (1)\n• estado (3)\n• unidade (50)\n• produto (~200)\n\nAcesso via SSH Tunnel","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow_pos_gcs","type":"arrow","x":220,"y":200,"width":60,"height":0,"strokeColor":"#495057","strokeWidth":2,"points":[[0,0],[60,0]],"endArrowhead":"arrow"},
+    {"id":"arrow_pg_gcs","type":"arrow","x":220,"y":360,"width":60,"height":-100,"strokeColor":"#336791","strokeWidth":2,"points":[[0,0],[30,-50],[60,-100]],"endArrowhead":"arrow"},
+
+    {"id":"gcs_box","type":"rectangle","x":300,"y":130,"width":180,"height":180,"strokeColor":"#4285f4","backgroundColor":"#e8f0fe","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"gcs_title","type":"text","x":315,"y":145,"width":150,"height":22,"text":"☁️ Cloud Storage","fontSize":14,"fontFamily":3,"strokeColor":"#4285f4"},
+    {"id":"gcs_content","type":"text","x":315,"y":175,"width":150,"height":125,"text":"Data Lake\nBucket: dados-sales-*\n\nPrefixos:\n📁 raw/csv_sales/\n   └─ YYYY/MM/DD/\n📁 raw/reference_data/\n📁 quarantine/\n\nGatilho: Eventarc\nVersioning: habilitado","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow_gcs_cf","type":"arrow","x":480,"y":220,"width":40,"height":0,"strokeColor":"#4285f4","strokeWidth":2,"points":[[0,0],[40,0]],"endArrowhead":"arrow"},
+    {"id":"eventarc_label","type":"text","x":480,"y":195,"width":50,"height":18,"text":"Eventarc","fontSize":10,"fontFamily":3,"strokeColor":"#4285f4"},
+
+    {"id":"cf_box","type":"rectangle","x":540,"y":130,"width":180,"height":180,"strokeColor":"#f76707","backgroundColor":"#fff4e6","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"cf_title","type":"text","x":555,"y":145,"width":150,"height":22,"text":"⚡ Cloud Functions","fontSize":14,"fontFamily":3,"strokeColor":"#f76707"},
+    {"id":"cf_content","type":"text","x":555,"y":175,"width":150,"height":125,"text":"Python 3.11\n\n📦 csv-processor\n   gatilho Eventarc\n   validação PyArrow\n   → BigQuery Bronze\n\n📦 pg-reference-extractor\n   Cloud Scheduler\n   SSH Tunnel → CSV\n   → GCS reference/","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow_cf_bronze","type":"arrow","x":720,"y":220,"width":60,"height":0,"strokeColor":"#f76707","strokeWidth":2,"points":[[0,0],[60,0]],"endArrowhead":"arrow"},
+
+    {"id":"bronze_box","type":"rectangle","x":800,"y":100,"width":200,"height":250,"strokeColor":"#9c6644","backgroundColor":"#fef3c7","fillStyle":"solid","strokeWidth":3,"roundness":{"type":3}},
+    {"id":"bronze_title","type":"text","x":815,"y":115,"width":170,"height":25,"text":"🥉 BRONZE","fontSize":18,"fontFamily":3,"strokeColor":"#9c6644"},
+    {"id":"bronze_subtitle","type":"text","x":815,"y":140,"width":170,"height":15,"text":"case_ficticio_bronze","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
+    {"id":"bronze_content","type":"text","x":815,"y":165,"width":170,"height":175,"text":"Bruto, Append-Only\n━━━━━━━━━━━━━━━━━━\nTabelas (6):\n  📋 orders\n  📋 order_items\n  📋 products\n  📋 units\n  📋 states\n  📋 countries\n━━━━━━━━━━━━━━━━━━\nPartição: _ingest_date\nValidação: PyArrow\nSLA: <5 min após upload","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow_bronze_silver","type":"arrow","x":1000,"y":225,"width":60,"height":0,"strokeColor":"#4263eb","strokeWidth":3,"points":[[0,0],[60,0]],"endArrowhead":"arrow"},
+    {"id":"airflow_label1","type":"text","x":1005,"y":200,"width":50,"height":18,"text":"Airflow","fontSize":10,"fontFamily":3,"strokeColor":"#4263eb"},
+
+    {"id":"silver_box","type":"rectangle","x":1080,"y":100,"width":200,"height":250,"strokeColor":"#4263eb","backgroundColor":"#edf2ff","fillStyle":"solid","strokeWidth":3,"roundness":{"type":3}},
+    {"id":"silver_title","type":"text","x":1095,"y":115,"width":170,"height":25,"text":"🥈 SILVER","fontSize":18,"fontFamily":3,"strokeColor":"#4263eb"},
+    {"id":"silver_subtitle","type":"text","x":1095,"y":140,"width":170,"height":15,"text":"case_ficticio_silver","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
+    {"id":"silver_content","type":"text","x":1095,"y":165,"width":170,"height":175,"text":"Limpo, Deduplicado\n━━━━━━━━━━━━━━━━━━\nTabelas (6):\n  📋 orders (limpo)\n  📋 order_items (calc)\n  📋 products\n  📋 units (denorm)\n  📋 states\n  📋 countries\n━━━━━━━━━━━━━━━━━━\nTransforms: ROW_NUMBER\nValidação FK: INNER JOIN\nAgenda: 02:30 BRT","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow_silver_gold","type":"arrow","x":1280,"y":225,"width":60,"height":0,"strokeColor":"#e67700","strokeWidth":3,"points":[[0,0],[60,0]],"endArrowhead":"arrow"},
+    {"id":"airflow_label2","type":"text","x":1285,"y":200,"width":50,"height":18,"text":"Airflow","fontSize":10,"fontFamily":3,"strokeColor":"#e67700"},
+
+    {"id":"gold_box","type":"rectangle","x":1360,"y":100,"width":200,"height":250,"strokeColor":"#e67700","backgroundColor":"#fff9db","fillStyle":"solid","strokeWidth":3,"roundness":{"type":3}},
+    {"id":"gold_title","type":"text","x":1375,"y":115,"width":170,"height":25,"text":"🥇 GOLD","fontSize":18,"fontFamily":3,"strokeColor":"#e67700"},
+    {"id":"gold_subtitle","type":"text","x":1375,"y":140,"width":170,"height":15,"text":"case_ficticio_gold","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
+    {"id":"gold_content","type":"text","x":1375,"y":165,"width":170,"height":175,"text":"Star Schema (Kimball)\n━━━━━━━━━━━━━━━━━━\nDimensões (4):\n  📅 dim_date\n  🍕 dim_product\n  🏪 dim_unit\n  🌎 dim_geography\nFatos (2):\n  💰 fact_sales\n  📦 fact_order_items\nAgregações (3):\n  📈 agg_daily/unit/product\n━━━━━━━━━━━━━━━━━━\nAgenda: 03:00 BRT","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"arrow_gold_bi","type":"arrow","x":1560,"y":225,"width":60,"height":0,"strokeColor":"#7048e8","strokeWidth":2,"points":[[0,0],[60,0]],"endArrowhead":"arrow"},
+
+    {"id":"bi_box","type":"rectangle","x":1640,"y":100,"width":180,"height":250,"strokeColor":"#7048e8","backgroundColor":"#f3f0ff","fillStyle":"solid","strokeWidth":2,"roundness":{"type":3}},
+    {"id":"bi_title","type":"text","x":1655,"y":115,"width":150,"height":22,"text":"📊 Business Intel","fontSize":14,"fontFamily":3,"strokeColor":"#7048e8"},
+    {"id":"bi_content","type":"text","x":1655,"y":145,"width":150,"height":195,"text":"━━━━━━━━━━━━━━━━\n📈 Looker Studio\n  Conector nativo BQ\n  Atualização auto\n  Custo: R$0\n\n🔥 Apache Superset\n  Docker: 3.1.1\n  SQL Lab\n  40+ tipos de gráfico\n━━━━━━━━━━━━━━━━\nDashboards:\n  • Visão Executiva\n  • Operações\n  • Análise de Produtos\n  • Performance Unidades","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"timeline_box","type":"rectangle","x":40,"y":450,"width":1780,"height":100,"strokeColor":"#087f5b","backgroundColor":"#e6fcf5","fillStyle":"solid","strokeWidth":2},
+    {"id":"timeline_title","type":"text","x":60,"y":465,"width":200,"height":22,"text":"⏱️ Cronograma Diário do Pipeline (BRT)","fontSize":14,"fontFamily":3,"strokeColor":"#087f5b"},
+    {"id":"timeline_content","type":"text","x":60,"y":495,"width":1740,"height":45,"text":"00:00-23:59  POS faz upload de CSVs (ao longo do dia)  →  Eventarc dispara csv-processor  →  Bronze carrega em <5 min\n01:00        pg-reference-extractor executa (Cloud Scheduler)  →  Dados de referência para GCS  →  Tabelas de referência Bronze\n02:30        Airflow: Bronze → Silver (dedup, transform, validar FKs)  ~2 min\n03:00        Airflow: Silver → Gold (dims, fatos, agregações)  ~5 min  →  Dashboards atualizados até 03:10 BRT","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"metrics_box","type":"rectangle","x":40,"y":570,"width":600,"height":140,"strokeColor":"#c92a2a","backgroundColor":"#fff5f5","fillStyle":"solid","strokeWidth":2},
+    {"id":"metrics_title","type":"text","x":60,"y":585,"width":200,"height":22,"text":"📈 SLAs do Pipeline","fontSize":14,"fontFamily":3,"strokeColor":"#c92a2a"},
+    {"id":"metrics_content","type":"text","x":60,"y":615,"width":560,"height":85,"text":"Latência End-to-End:    < 3 minutos (upload POS → Bronze)     ✅ vs 4-6 horas manual\nFreshness de Dados:     D+0 (mesmo dia)                        ✅ vs D+1 a D+3 manual\nTaxa de Erro:           ~0% (validação de schema)               ✅ vs 2-5% manual\nDisponibilidade:        >99% alvo                               ✅ resiliência orientada a eventos\nZero Duplicatas:        100% (dedup ROW_NUMBER)                 ✅ garantido pelo Silver","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"cost_box","type":"rectangle","x":660,"y":570,"width":500,"height":140,"strokeColor":"#2f9e44","backgroundColor":"#ebfbee","fillStyle":"solid","strokeWidth":2},
+    {"id":"cost_title","type":"text","x":680,"y":585,"width":200,"height":22,"text":"💰 Estrutura de Custo (GCP Free Tier)","fontSize":14,"fontFamily":3,"strokeColor":"#2f9e44"},
+    {"id":"cost_content","type":"text","x":680,"y":615,"width":460,"height":85,"text":"Cloud Storage:      5 GB grátis/mês     Usado: ~500 MB          R$0,00\nBigQuery Armaz.:    10 GB grátis/mês    Usado: ~2 GB            R$0,00\nBigQuery Queries:   1 TB grátis/mês     Usado: ~50 GB           R$0,00\nCloud Functions:    2M invocações/mês   Usado: ~3.000           R$0,00\nCloud Scheduler:    3 jobs grátis/mês   Usado: 2                R$0,00\n─────────────────────────────────────────────────────────────────\nCUSTO TOTAL MENSAL:                                             R$0,00","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
+
+    {"id":"volumes_box","type":"rectangle","x":1180,"y":570,"width":640,"height":140,"strokeColor":"#1864ab","backgroundColor":"#e7f5ff","fillStyle":"solid","strokeWidth":2},
+    {"id":"volumes_title","type":"text","x":1200,"y":585,"width":200,"height":22,"text":"📊 Volumes de Dados (Diário)","fontSize":14,"fontFamily":3,"strokeColor":"#1864ab"},
+    {"id":"volumes_content","type":"text","x":1200,"y":615,"width":600,"height":85,"text":"Arquivos CSV Ingeridos:  ~100 arquivos/dia (2 por unidade × 50 unidades)\nPedidos:                 ~5.000 pedidos/dia (100 por unidade)\nItens de Pedido:         ~15.000-25.000 itens/dia (3-5 por pedido)\nDados de Referência:     ~255 registros total (estável, atualizado diariamente)\nCrescimento Bronze:      ~5 MB/dia → ~150 MB/mês\nAgregações Gold:         ~1.000 linhas/tabela (queries rápidas <1s)","fontSize":10,"fontFamily":3,"strokeColor":"#495057"}
+  ],
+  "appState": {"viewBackgroundColor":"#ffffff","gridSize":null},
+  "files": {}
+}
