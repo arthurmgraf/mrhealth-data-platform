@@ -1,9 +1,11 @@
-# F7-02: Grafana Persistent Volume Claim
+# Grafana PersistentVolumeClaim
+# Stores Grafana database (dashboards, users, preferences)
+# Uses K3s default local-path provisioner (zero cost)
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: grafana-data-pvc
-  namespace: mrhealth-monitoring
+  namespace: mrhealth-db
   labels:
     app: grafana
     part-of: mrhealth

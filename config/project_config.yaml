@@ -110,7 +110,7 @@ airflow:
 
 grafana:
   port: 30300
-  namespace: mrhealth-monitoring
+  namespace: mrhealth-db
   dashboards:
     - pipeline-health
     - data-quality

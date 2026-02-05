@@ -1,8 +1,0 @@
-# F7-01: Grafana Monitoring Namespace
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: mrhealth-monitoring
-  labels:
-    app: grafana
-    part-of: mrhealth

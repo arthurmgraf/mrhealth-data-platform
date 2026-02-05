@@ -1,9 +1,14 @@
-# F7-05: Grafana Deployment
+# Grafana OSS Deployment for MR. HEALTH Data Platform
+# - Grafana 11 OSS (zero cost, no enterprise features)
+# - BigQuery datasource plugin auto-installed
+# - Anonymous dashboard access enabled (portfolio viewing)
+# - GCP credentials mounted from host via hostPath
+# - Low resource footprint for single-node K3s
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
-  namespace: mrhealth-monitoring
+  namespace: mrhealth-db
   labels:
     app: grafana
     part-of: mrhealth
@@ -20,31 +25,43 @@ spec:
         app: grafana
         part-of: mrhealth
     spec:
+      # Grafana runs as user 472 (grafana) by default
       securityContext:
         fsGroup: 472
         runAsUser: 472
         runAsGroup: 472
       containers:
         - name: grafana
-          image: grafana/grafana-oss:10.2.0
+          image: grafana/grafana-oss:11.4.0
           ports:
             - containerPort: 3000
               name: http
               protocol: TCP
           env:
+            # --- Authentication ---
             - name: GF_SECURITY_ADMIN_USER
               value: "admin"
             - name: GF_SECURITY_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: grafana-secret
-                  key: admin-password
+              value: "GrafanaMrH3alth2026"
+            # --- Anonymous access (portfolio viewing) ---
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_NAME
+              value: "Main Org."
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: "Viewer"
+            # --- Plugins ---
             - name: GF_INSTALL_PLUGINS
               value: "grafana-bigquery-datasource"
+            # --- GCP credentials ---
             - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: "/etc/gcp/service-account.json"
+              value: "/opt/grafana/keys/gcp.json"
+            # --- Provisioning path ---
             - name: GF_PATHS_PROVISIONING
               value: "/etc/grafana/provisioning"
+            # --- Server settings ---
+            - name: GF_SERVER_ROOT_URL
+              value: "http://15.235.61.251:30300/"
           volumeMounts:
             - name: grafana-data
               mountPath: /var/lib/grafana
@@ -54,19 +71,16 @@ spec:
             - name: dashboards-config
               mountPath: /etc/grafana/provisioning/dashboards
               readOnly: true
-            - name: dashboards-files
-              mountPath: /var/lib/grafana/dashboards
-              readOnly: true
             - name: gcp-credentials
-              mountPath: /etc/gcp
+              mountPath: /opt/grafana/keys
               readOnly: true
           resources:
             requests:
               cpu: 100m
               memory: 128Mi
             limits:
-              cpu: 250m
-              memory: 256Mi
+              cpu: 500m
+              memory: 512Mi
           readinessProbe:
             httpGet:
               path: /api/health
@@ -92,9 +106,10 @@ spec:
         - name: dashboards-config
           configMap:
             name: grafana-dashboards-config
-        - name: dashboards-files
-          configMap:
-            name: grafana-dashboards-files
+        # GCP service account key from host filesystem
+        # The file at /home/arthur/case_mrHealth/keys/gcp.json is mounted
+        # into the container at /opt/grafana/keys/gcp.json
         - name: gcp-credentials
-          secret:
-            secretName: grafana-gcp-credentials
+          hostPath:
+            path: /home/arthur/case_mrHealth/keys
+            type: Directory

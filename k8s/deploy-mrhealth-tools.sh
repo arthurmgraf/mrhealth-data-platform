@@ -26,42 +26,29 @@ kubectl apply -f /tmp/k8s/superset/deployment.yaml
 
 echo "=== Deploying Grafana ==="
 
-# Create Grafana namespace
-kubectl apply -f /tmp/k8s/grafana/namespace.yaml
-
-echo "Waiting for namespace mrhealth-monitoring..."
-kubectl wait --for=jsonpath='{.status.phase}'=Active namespace/mrhealth-monitoring --timeout=30s
-
-# Create dashboard ConfigMap from JSON files
-kubectl create configmap grafana-dashboards-files \
-  --from-file=/tmp/k8s/grafana/dashboards/ \
-  -n mrhealth-monitoring \
-  --dry-run=client -o yaml | kubectl apply -f -
+# Grafana runs in mrhealth-db namespace (shared with Airflow, PG, Superset)
+# No separate namespace needed
 
 # Apply Grafana manifests
 kubectl apply -f /tmp/k8s/grafana/pvc.yaml
-kubectl apply -f /tmp/k8s/grafana/secret.yaml
 kubectl apply -f /tmp/k8s/grafana/configmap.yaml
 kubectl apply -f /tmp/k8s/grafana/deployment.yaml
 kubectl apply -f /tmp/k8s/grafana/service.yaml
 
 echo "Waiting for Grafana to be ready..."
-kubectl wait --for=condition=ready pod -l app=grafana -n mrhealth-monitoring --timeout=120s
+kubectl wait --for=condition=ready pod -l app=grafana -n mrhealth-db --timeout=180s
 
 echo ""
 echo "=== Deployment Complete ==="
 echo ""
 echo "Access URLs:"
-echo "  Airflow:  http://<YOUR-K3S-IP>:30180  (check credentials in Secret Manager)"
-echo "  Superset: http://<YOUR-K3S-IP>:30088  (check credentials in Secret Manager)"
-echo "  Grafana:  http://<YOUR-K3S-IP>:30300  (default: admin/admin -- change immediately)"
+echo "  Airflow:  http://15.235.61.251:30180"
+echo "  Superset: http://15.235.61.251:30188"
+echo "  Grafana:  http://15.235.61.251:30300  (admin / GrafanaMrH3alth2026)"
 echo ""
 echo "Check pod status with:"
 echo "  kubectl get pods -n mrhealth-db"
-echo "  kubectl get pods -n mrhealth-monitoring"
 echo ""
-echo "IMPORTANT: Before using Grafana with BigQuery, replace the placeholder"
-echo "  GCP service account key in the grafana-gcp-credentials secret:"
-echo "    kubectl create secret generic grafana-gcp-credentials \\"
-echo "      --from-file=service-account.json=<path-to-key.json> \\"
-echo "      -n mrhealth-monitoring --dry-run=client -o yaml | kubectl apply -f -"
+echo "NOTE: Grafana will download the BigQuery plugin on first start."
+echo "  This may take 1-2 minutes. Check logs with:"
+echo "  kubectl logs -l app=grafana -n mrhealth-db -f"

@@ -1,6 +1,6 @@
 # Acesso Completo ao Sistema MR. HEALTH Data Platform
 
-**Data da Validacao:** 2026-02-03
+**Data da Validacao:** 2026-02-05
 **Status:** TODOS OS COMPONENTES FUNCIONANDO
 
 ---
@@ -11,78 +11,42 @@
 |------------|--------|--------|
 | GCP Project | ATIVO | `sixth-foundry-485810-e5` |
 | GCS Bucket | ATIVO | 19 arquivos CSV + 4 referencias |
-| Cloud Functions | 2 ATIVAS | csv-processor, pg-reference-extractor |
+| Cloud Functions | 3 ATIVAS | csv-processor, pg-reference-extractor, data-generator |
 | Cloud Scheduler | 1 ATIVO | pg-reference-extraction (01:00 BRT) |
 | BigQuery Bronze | 6 tabelas | 178 orders, 496 items |
 | BigQuery Silver | 6 tabelas | 15 orders processados |
 | BigQuery Gold | 9 tabelas | Star schema completo |
+| BigQuery Monitoring | 3 tabelas | Quality logs, metrics, free tier |
 | K3s Cluster | RUNNING | 1 node Ready |
 | PostgreSQL | RUNNING | 30 produtos, 3 unidades |
-| **Portainer** | **RUNNING** | http://<YOUR-K3S-IP>:30777 |
-| **Airflow** | **RUNNING** | http://<YOUR-K3S-IP>:30180 |
-| **Superset** | **RUNNING** | http://<YOUR-K3S-IP>:30188 |
-| Local CSVs | 16 arquivos | 163 pedidos, 496 itens |
+| Airflow | RUNNING | 5 DAGs deployed, http://15.235.61.251:30180 |
+| Superset | RUNNING | http://15.235.61.251:30188 |
+| Grafana | RUNNING | http://15.235.61.251:30300 |
+| Portainer | RUNNING | http://15.235.61.251:30777 |
+
+> **Credenciais:** Todas as senhas estao em `docs/CREDENCIAIS_SEGURAS.md` (arquivo no .gitignore)
 
 ---
 
-## 1. Dados Locais (CSVs)
-
-### Caminho
-```
-output/csv_sales/2026/02/{01,02}/unit_{001,002,003}/
-  - pedido.csv
-  - item_pedido.csv
-
-output/reference_data/
-  - pais.csv (1 registro)
-  - estado.csv (3 registros)
-  - unidade.csv (3 registros)
-  - produto.csv (30 registros)
-```
-
-### Estatisticas
-- **Total de Pedidos:** 163
-- **Total de Itens:** 496
-- **Faturamento Local:** R$ 24.672,43
-- **Periodo:** 2026-02-01 a 2026-02-02
-- **Unidades:** 1, 2, 3
-
-### Como Verificar
-```bash
-# Ver estrutura
-ls -la output/csv_sales/2026/02/
-
-# Contar pedidos
-py -c "import glob; print(len(glob.glob('output/csv_sales/**/pedido.csv', recursive=True)))"
-
-# Abrir no Python
-py -c "import pandas as pd; print(pd.read_csv('output/csv_sales/2026/02/01/unit_001/pedido.csv', sep=';').head())"
-```
-
----
-
-## 2. Google Cloud Platform
+## 1. Google Cloud Platform
 
 ### Console
 **URL:** https://console.cloud.google.com/?project=sixth-foundry-485810-e5
+**Conta:** arthurmgraf@gmail.com
 
 ### Autenticacao
 ```bash
-# Verificar conta autenticada
 gcloud auth list
-# Ativo: arthurmgraf@gmail.com
-
-# Definir projeto
 gcloud config set project sixth-foundry-485810-e5
 ```
 
 ---
 
-## 3. Cloud Storage (GCS)
+## 2. Cloud Storage (GCS)
 
 ### Bucket
 **Nome:** `mrhealth-datalake-485810`
-**URL Console:** https://console.cloud.google.com/storage/browser/mrhealth-datalake-485810
+**Console:** https://console.cloud.google.com/storage/browser/mrhealth-datalake-485810
 
 ### Estrutura
 ```
@@ -91,397 +55,412 @@ gs://mrhealth-datalake-485810/
 │   ├── csv_sales/
 │   │   ├── 2026/01/27/unit_{001,002,003}/  (6 CSVs)
 │   │   ├── 2026/01/28/unit_{001,002,003}/  (6 CSVs)
-│   │   └── test/, final/, test2/, test3/  (testes)
+│   │   └── test/, final/, test2/, test3/
 │   └── reference_data/
-│       ├── pais.csv
-│       ├── estado.csv
-│       ├── unidade.csv
-│       └── produto.csv
+│       ├── pais.csv, estado.csv, unidade.csv, produto.csv
 └── quarantine/
 ```
 
-### Como Verificar
+### Verificar
 ```bash
-# Listar bucket
 gcloud storage ls gs://mrhealth-datalake-485810/
-
-# Listar raw/csv_sales
 gcloud storage ls --recursive gs://mrhealth-datalake-485810/raw/csv_sales/
-
-# Ver conteudo de um arquivo
-gcloud storage cat gs://mrhealth-datalake-485810/raw/csv_sales/2026/01/27/unit_001/pedido.csv | head -5
 ```
 
 ---
 
-## 4. Cloud Functions
+## 3. Cloud Functions
 
-### csv-processor
-- **Status:** ACTIVE
-- **Runtime:** Python 3.11
-- **Trigger:** Eventarc (upload no bucket `mrhealth-datalake-485810`)
-- **URL:** https://csv-processor-f7wgmun2nq-uc.a.run.app
-- **Console:** https://console.cloud.google.com/functions/details/us-central1/csv-processor?project=sixth-foundry-485810-e5
+| Funcao | Trigger | Runtime | URL |
+|--------|---------|---------|-----|
+| csv-processor | Eventarc (GCS upload) | Python 3.11 | https://csv-processor-f7wgmun2nq-uc.a.run.app |
+| pg-reference-extractor | HTTP (Cloud Scheduler) | Python 3.11 | https://pg-reference-extractor-f7wgmun2nq-uc.a.run.app |
+| data-generator | HTTP | Python 3.11 | (via gcloud functions list) |
 
-### pg-reference-extractor
-- **Status:** ACTIVE
-- **Runtime:** Python 3.11
-- **Trigger:** HTTP (invocado pelo Scheduler)
-- **URL:** https://pg-reference-extractor-f7wgmun2nq-uc.a.run.app
-- **Console:** https://console.cloud.google.com/functions/details/us-central1/pg-reference-extractor?project=sixth-foundry-485810-e5
+**Console:** https://console.cloud.google.com/functions?project=sixth-foundry-485810-e5
 
-### Como Verificar
 ```bash
-# Listar funcoes
 gcloud functions list --project=sixth-foundry-485810-e5
-
-# Ver detalhes
-gcloud functions describe csv-processor --project=sixth-foundry-485810-e5 --region=us-central1
-
-# Ver logs
 gcloud functions logs read csv-processor --project=sixth-foundry-485810-e5 --region=us-central1 --limit=20
 ```
 
 ---
 
-## 5. Cloud Scheduler
+## 4. Cloud Scheduler
 
-### pg-reference-extraction
-- **Status:** ENABLED
-- **Horario:** `0 1 * * *` (01:00 BRT diariamente)
-- **Timezone:** America/Sao_Paulo
-- **Console:** https://console.cloud.google.com/cloudscheduler?project=sixth-foundry-485810-e5
+| Job | Horario | Timezone |
+|-----|---------|----------|
+| pg-reference-extraction | `0 1 * * *` (01:00 BRT) | America/Sao_Paulo |
 
-### Como Verificar
-```bash
-gcloud scheduler jobs list --project=sixth-foundry-485810-e5 --location=us-central1
-```
+**Console:** https://console.cloud.google.com/cloudscheduler?project=sixth-foundry-485810-e5
 
 ---
 
-## 6. BigQuery
+## 5. BigQuery
 
-### Console
-**URL:** https://console.cloud.google.com/bigquery?project=sixth-foundry-485810-e5
+**Console:** https://console.cloud.google.com/bigquery?project=sixth-foundry-485810-e5
 
-### Datasets (NOMES REAIS)
-> **Atencao:** Os datasets reais sao `mrhealth_*`, nao `case_ficticio_*`
+### Datasets
 
 | Dataset | Tabelas | Descricao |
 |---------|---------|-----------|
-| `mrhealth_bronze` | 6 | Dados brutos ingeridos |
+| `mrhealth_bronze` | 6 | Dados brutos ingeridos via csv-processor |
 | `mrhealth_silver` | 6 | Dados limpos e dedupados |
-| `mrhealth_gold` | 9 | Star schema + agregacoes |
-| `mrhealth_monitoring` | 0 | (vazio) |
+| `mrhealth_gold` | 9 | Star schema (Kimball) + agregacoes |
+| `case_ficticio_monitoring` | 3 | Quality logs, pipeline metrics, free tier usage |
 
 ### Tabelas por Layer
 
 **BRONZE (mrhealth_bronze)**
-| Tabela | Linhas |
-|--------|--------|
-| orders | 178 |
-| order_items | 496 |
-| products | 30 |
-| units | 3 |
-| states | 3 |
-| countries | 1 |
+
+| Tabela | Linhas | Descricao |
+|--------|--------|-----------|
+| orders | 178 | Pedidos brutos |
+| order_items | 496 | Itens dos pedidos |
+| products | 30 | Catalogo de produtos (ref) |
+| units | 3 | Unidades/restaurantes (ref) |
+| states | 3 | Estados (ref) |
+| countries | 1 | Paises (ref) |
 
 **SILVER (mrhealth_silver)**
-| Tabela | Linhas |
-|--------|--------|
-| orders | 15 |
-| order_items | 0 |
-| products | 30 |
-| units | 3 |
-| states | 3 |
-| countries | 1 |
 
-**GOLD (mrhealth_gold)**
-| Tabela | Linhas |
-|--------|--------|
-| dim_date | 1.095 |
-| dim_product | 30 |
-| dim_unit | 3 |
-| dim_geography | 3 |
-| fact_sales | 15 |
-| fact_order_items | 0 |
-| agg_daily_sales | 1 |
-| agg_unit_performance | 1 |
-| agg_product_performance | 0 |
+| Tabela | Linhas | Descricao |
+|--------|--------|-----------|
+| orders | 15 | Pedidos dedupados |
+| order_items | 0 | Itens limpos (pendente) |
+| products | 30 | Produtos normalizados |
+| units | 3 | Unidades normalizadas |
+| states | 3 | Estados normalizados |
+| countries | 1 | Pais normalizado |
+
+**GOLD (mrhealth_gold) - Star Schema**
+
+| Tabela | Linhas | Tipo |
+|--------|--------|------|
+| dim_date | 1.095 | Dimensao (3 anos) |
+| dim_product | 30 | Dimensao |
+| dim_unit | 3 | Dimensao |
+| dim_geography | 3 | Dimensao |
+| fact_sales | 15 | Fato (grain: pedido) |
+| fact_order_items | 0 | Fato (grain: item) |
+| agg_daily_sales | 1 | Agregacao |
+| agg_unit_performance | 1 | Agregacao |
+| agg_product_performance | 0 | Agregacao |
+
+> **Importante sobre o Star Schema:**
+> - `fact_sales` NAO tem product_key (grain = pedido). Tem: order_id, date_key, unit_key, order_value
+> - `fact_order_items` TEM product_key (grain = item). Tem: item_id, order_id, date_key, unit_key, product_key
+> - Colunas Gold usam nomes em ingles: product_name, unit_name (nao nome_produto, nome_unidade)
+
+**MONITORING (case_ficticio_monitoring)**
+
+| Tabela | Descricao |
+|--------|-----------|
+| data_quality_log | Resultados dos 6 checks de qualidade |
+| pipeline_metrics | Metricas de execucao do pipeline (duracao, rows) |
+| free_tier_usage | Snapshots de uso GCS + BQ vs Free Tier |
 
 ### Queries de Validacao
 ```sql
--- Bronze
+-- Bronze: total de pedidos
 SELECT COUNT(*) FROM `sixth-foundry-485810-e5.mrhealth_bronze.orders`;
 
--- Silver
-SELECT COUNT(*) FROM `sixth-foundry-485810-e5.mrhealth_silver.orders`;
-
--- Gold Star Schema
+-- Gold: fact_sales com dimensoes
 SELECT
   d.full_date,
-  p.nome_produto,
-  u.nome_unidade,
-  f.valor_total
+  u.unit_name,
+  f.order_value
 FROM `sixth-foundry-485810-e5.mrhealth_gold.fact_sales` f
 JOIN `sixth-foundry-485810-e5.mrhealth_gold.dim_date` d ON f.date_key = d.date_key
-JOIN `sixth-foundry-485810-e5.mrhealth_gold.dim_product` p ON f.product_key = p.product_key
 JOIN `sixth-foundry-485810-e5.mrhealth_gold.dim_unit` u ON f.unit_key = u.unit_key
 LIMIT 10;
 
--- Agregacao diaria
-SELECT * FROM `sixth-foundry-485810-e5.mrhealth_gold.agg_daily_sales`;
-```
-
-### Como Verificar via Python
-```python
-from google.cloud import bigquery
-client = bigquery.Client(project='sixth-foundry-485810-e5')
-
-# Listar datasets
-for ds in client.list_datasets():
-    print(ds.dataset_id)
-
-# Contar linhas
-result = client.query("SELECT COUNT(*) FROM mrhealth_bronze.orders").result()
-print(list(result)[0][0])
+-- Quality: ultimos checks
+SELECT check_name, result, actual_value, execution_timestamp
+FROM `sixth-foundry-485810-e5.case_ficticio_monitoring.data_quality_log`
+ORDER BY execution_timestamp DESC
+LIMIT 10;
 ```
 
 ---
 
-## 7. K3s (Kubernetes) + PostgreSQL
+## 6. K3s Cluster + PostgreSQL
 
-### Servidor SSH
+### Servidor
 ```
-Host: <YOUR-K3S-IP>
-User: <YOUR-SSH-USER>
-Password: <STORED-IN-SECRET-MANAGER>
+Host: 15.235.61.251
+User: arthur
 ```
 
-> **IMPORTANTE:** Nunca armazene credenciais em documentação. Use Secret Manager ou variáveis de ambiente.
-
-### Acessar via SSH
-```bash
-ssh <YOUR-SSH-USER>@<YOUR-K3S-IP>
-```
+> Senha SSH em `docs/CREDENCIAIS_SEGURAS.md`
 
 ### Status do Cluster
 ```bash
+ssh arthur@15.235.61.251
+
 # Nodes
 kubectl get nodes
 # Esperado: k3s-master Ready
 
-# PostgreSQL pod
+# Todos os pods do projeto
 kubectl get pods -n mrhealth-db
-# Esperado: postgresql-xxx Running
+# Esperado: postgresql, airflow-webserver, airflow-scheduler, airflow-postgres, superset
 
-# Servico
+# Servicos
 kubectl get svc -n mrhealth-db
-# Esperado: postgresql NodePort 30432
 ```
 
-### Acessar PostgreSQL
+### PostgreSQL (Banco de Dados Master)
+| Campo | Valor |
+|-------|-------|
+| Host | 15.235.61.251 |
+| Porta | 30432 (NodePort) |
+| Database | mrhealth |
+| Usuario | mrhealth_admin |
 
-**Opcao 1: Via kubectl exec (do servidor SSH)**
 ```bash
+# Acesso direto no pod
 kubectl exec -n mrhealth-db deployment/postgresql -- \
   psql -U mrhealth_admin -d mrhealth -c "SELECT * FROM produto LIMIT 5;"
+
+# Via SSH tunnel (da maquina local)
+ssh -L 5432:localhost:30432 arthur@15.235.61.251
+# Depois: psql -h localhost -p 5432 -U mrhealth_admin -d mrhealth
 ```
 
-**Opcao 2: Via SSH tunnel (da sua maquina local)**
-```bash
-# Terminal 1: Criar tunel
-ssh -L 5432:localhost:30432 <YOUR-SSH-USER>@<YOUR-K3S-IP>
-
-# Terminal 2: Conectar via psql ou DBeaver
-psql -h localhost -p 5432 -U mrhealth_admin -d mrhealth
-```
-
-### Tabelas no PostgreSQL
-| Tabela | Linhas |
-|--------|--------|
+| Tabela PG | Linhas |
+|-----------|--------|
 | produto | 30 |
 | unidade | 3 |
 | estado | 3 |
 | pais | 1 |
 
-### Queries de Validacao
-```sql
--- Listar tabelas
-\dt
-
--- Ver produtos
-SELECT * FROM produto ORDER BY id_produto;
-
--- Ver unidades com geografia
-SELECT u.nome_unidade, e.nome_estado, p.nome_pais
-FROM unidade u
-JOIN estado e ON u.id_estado = e.id_estado
-JOIN pais p ON e.id_pais = p.id_pais;
-```
-
 ---
 
-## 8. Portainer (Interface Visual para Kubernetes)
+## 7. Airflow (Orquestracao)
 
-**Status:** RUNNING
-**URL:** http://<YOUR-K3S-IP>:30777
-**URL HTTPS:** https://<YOUR-K3S-IP>:30779
+**URL:** http://15.235.61.251:30180
+**Login:** Ver `docs/CREDENCIAIS_SEGURAS.md`
 
-### Primeiro Acesso
-1. Abra http://<YOUR-K3S-IP>:30777 no navegador
-2. Crie uma conta de administrador (username + senha)
-3. Selecione "Kubernetes" como ambiente
-4. Clique em "Connect"
+### Arquitetura de Deploy
+- **Executor:** LocalExecutor (sem Celery, zero overhead)
+- **Scheduler Memory:** 2Gi limits / 1Gi requests (1Gi causa OOM com paralelismo)
+- **Persistencia:** hostPath volumes montando `/home/arthur/case_mrHealth/` diretamente nos pods
+- **GCP Credentials:** `/home/arthur/case_mrHealth/keys/gcp.json` (montado como `/opt/airflow/keys/gcp.json`)
 
-### O que voce pode ver no Portainer
-- **Namespaces:** mrhealth-db, portainer, kube-system, platypus-jobs
-- **Deployments:** postgresql, airflow-webserver, airflow-scheduler, superset, portainer
-- **Pods:** Status, logs, terminal
-- **Services:** NodePort 30432 (PostgreSQL), 30180 (Airflow), 30188 (Superset), 30777 (Portainer)
-- **Persistent Volumes:** postgresql-pvc, airflow-postgres-pvc, superset-pvc
+### Volumes montados (hostPath)
 
-### Verificar via CLI
+| Container Path | Host Path | Conteudo |
+|----------------|-----------|----------|
+| /opt/airflow/dags/ | /home/arthur/case_mrHealth/dags/ | 5 DAG files |
+| /opt/airflow/plugins/ | /home/arthur/case_mrHealth/plugins/ | mrhealth package |
+| /opt/airflow/config/ | /home/arthur/case_mrHealth/config/ | project_config.yaml |
+| /opt/airflow/sql/ | /home/arthur/case_mrHealth/sql/ | 15 SQL scripts |
+| /opt/airflow/keys/ | /home/arthur/case_mrHealth/keys/ | gcp.json |
+
+> **Importante:** Alteracoes nos arquivos do servidor sao refletidas imediatamente nos pods (sem rebuild).
+
+### 5 DAGs Deployed
+
+| DAG | Schedule | Descricao |
+|-----|----------|-----------|
+| `mrhealth_daily_pipeline` | `0 2 * * *` (02:00 BRT) | Pipeline Medallion completo: Bronze->Silver->Gold->Agg |
+| `mrhealth_data_quality` | `0 3 * * *` (03:00 BRT) | 6 checks de qualidade + alertas |
+| `mrhealth_reference_refresh` | `0 1 * * *` (01:00 BRT) | Sync PG reference data para Bronze |
+| `mrhealth_data_retention` | `0 4 * * 0` (dom 04:00) | Limpeza Bronze >90d, GCS >60d, Free Tier monitor |
+| `mrhealth_backfill_monitor` | `0 6 * * 1` (seg 06:00) | Detecta gaps e regenera dados faltantes |
+
+### Data Quality Checks (6 verificacoes)
+
+| Check | Categoria | O que verifica |
+|-------|-----------|----------------|
+| freshness_fact_sales | freshness | Dados de hoje existem em fact_sales |
+| completeness_all_units | completeness | Todas as unidades reportaram dados |
+| accuracy_cross_layer_totals | accuracy | Totais Silver vs Gold batem |
+| uniqueness_order_id | uniqueness | Sem order_id duplicados |
+| referential_integrity_product | referential | Todos product_key existem em dim_product |
+| volume_anomaly_detection | volume | Volume de hoje dentro de 2 std_dev |
+
+### Operacoes Airflow
 ```bash
-# Status do Portainer
-ssh <YOUR-SSH-USER>@<YOUR-K3S-IP> 'kubectl get pods -n portainer'
+# Verificar DAGs
+ssh arthur@15.235.61.251 'kubectl exec -n mrhealth-db deployment/airflow-scheduler -- airflow dags list'
 
-# Logs
-ssh <YOUR-SSH-USER>@<YOUR-K3S-IP> 'kubectl logs -n portainer deployment/portainer --tail=10'
+# Trigger manual
+ssh arthur@15.235.61.251 'kubectl exec -n mrhealth-db deployment/airflow-scheduler -- airflow dags trigger mrhealth_data_quality'
+
+# Ver logs de um task
+ssh arthur@15.235.61.251 'kubectl logs -n mrhealth-db deployment/airflow-scheduler --tail=50'
+
+# Reserializar DAGs (apos editar arquivos)
+ssh arthur@15.235.61.251 'kubectl exec -n mrhealth-db deployment/airflow-scheduler -- airflow dags reserialize'
 ```
+
+### Licoes de Deploy Importantes
+1. Imports Airflow: usar `from mrhealth.xxx` (NAO `from plugins.mrhealth.xxx`) pois plugins/ e auto-adicionado ao PYTHONPATH
+2. Sensor correto: `GCSObjectsWithPrefixExistenceSensor` (NAO `GCSObjectsWithPrefixSensor`) no providers-google 10.13.1
+3. `kubectl cp` e efemero: arquivos copiados se perdem no restart do pod. Usar hostPath volumes.
+4. DAGs novos precisam: `airflow dags reserialize` + set `is_active=True` na primeira vez
+5. LocalExecutor com 5 DAGs simultaneos precisa >= 2Gi de memoria no scheduler
 
 ---
 
-## 9. Airflow e Superset (Kubernetes)
+## 8. Grafana (Monitoramento)
 
-**Status:** RUNNING NO KUBERNETES (namespace mrhealth-db)
+**URL:** http://15.235.61.251:30300
+**Login:** Ver `docs/CREDENCIAIS_SEGURAS.md`
 
-Airflow e Superset agora rodam no cluster K3s junto com o PostgreSQL do projeto.
+### Status
+- Grafana OSS 11.4.0 no K3s namespace `mrhealth-db`
+- Plugin BigQuery (grafana-bigquery-datasource v3.0.4) instalado
+- Datasource "BigQuery MR Health" provisionado e testado: `Data source is working`
+- Anonymous access habilitado para visualizacao de dashboards (portfolio)
 
-### URLs de Acesso
-| Ferramenta | URL | Login |
-|------------|-----|-------|
-| **Airflow** | http://<YOUR-K3S-IP>:30180 | `admin` / `admin` |
-| **Superset** | http://<YOUR-K3S-IP>:30188 | `admin` / `admin` |
+### Dashboards Planejados
+- Pipeline Health (metricas do daily_pipeline)
+- Data Quality (resultados dos 6 checks)
+- Free Tier Usage (GCS + BQ storage vs limites)
+- Airflow Metrics (duracao, status)
 
-### Componentes no Kubernetes
-```
-Namespace: mrhealth-db
-├── airflow-postgres      (PostgreSQL para metadata do Airflow)
-├── airflow-webserver     (Interface web - porta 30180)
-├── airflow-scheduler     (Agendador de DAGs)
-├── superset              (Dashboards - porta 30188)
-└── postgresql            (Banco de dados do projeto Mr. Health)
-```
-
-### Verificar Status
+### Verificar
 ```bash
-# Via SSH
-ssh <YOUR-SSH-USER>@<YOUR-K3S-IP> 'kubectl get pods -n mrhealth-db'
-
-# Logs do Airflow
-ssh <YOUR-SSH-USER>@<YOUR-K3S-IP> 'kubectl logs -n mrhealth-db deployment/airflow-webserver --tail=20'
-
-# Logs do Superset
-ssh <YOUR-SSH-USER>@<YOUR-K3S-IP> 'kubectl logs -n mrhealth-db deployment/superset --tail=20'
+ssh arthur@15.235.61.251 'kubectl get pods -n mrhealth-db -l app=grafana'
+curl -s http://15.235.61.251:30300/api/health
 ```
 
-### Reiniciar Servicos
+---
+
+## 9. Superset (Dashboards)
+
+**URL:** http://15.235.61.251:30188
+**Login:** Ver `docs/CREDENCIAIS_SEGURAS.md`
+
+### Status
+- Deploy no K3s namespace `mrhealth-db`
+- BigQuery driver instalado (sqlalchemy-bigquery 1.16.0)
+- Conexao "BigQuery MR Health" configurada e testada (fact_sales: 15, dim_product: 30)
+
+### Verificar
 ```bash
-# Reiniciar Airflow
-ssh <YOUR-SSH-USER>@<YOUR-K3S-IP> 'kubectl rollout restart deployment airflow-webserver airflow-scheduler -n mrhealth-db'
-
-# Reiniciar Superset
-ssh <YOUR-SSH-USER>@<YOUR-K3S-IP> 'kubectl rollout restart deployment superset -n mrhealth-db'
-```
-
-### Manifestos Kubernetes
-Os arquivos de configuracao estao em:
-```
-k8s/
-├── airflow/
-│   ├── configmap.yaml
-│   ├── postgres.yaml
-│   ├── webserver.yaml
-│   └── scheduler.yaml
-├── superset/
-│   ├── configmap.yaml
-│   └── deployment.yaml
-└── postgresql/
-    └── (arquivos existentes)
+ssh arthur@15.235.61.251 'kubectl get pods -n mrhealth-db -l app=superset'
+ssh arthur@15.235.61.251 'kubectl logs -n mrhealth-db deployment/superset --tail=20'
 ```
 
 ---
 
-## 10. Diagramas
+## 10. Portainer (Interface Visual K8s)
 
-### Arquivos Gerados
-```
-diagrams/generated/
-├── architecture/
-│   ├── infrastructure_v3_technical.excalidraw
-│   └── infrastructure_v3_logo_flow.excalidraw
-├── data-flow/
-│   ├── medallion_pipeline_v3_technical.excalidraw
-│   └── medallion_pipeline_v3_logo_flow.excalidraw
-└── data-model/
-    └── star_schema_v3_technical.excalidraw
-```
+**URL:** http://15.235.61.251:30777
+**Login:** Ver `docs/CREDENCIAIS_SEGURAS.md`
 
-### Como Visualizar
-1. Acesse https://excalidraw.com
-2. Clique em "Open" (icone de pasta)
-3. Selecione qualquer arquivo `.excalidraw`
-4. Exporte como PNG/SVG para apresentacoes
+### O que voce pode ver
+- **Namespaces:** mrhealth-db, portainer, kube-system
+- **Deployments:** postgresql, airflow-webserver, airflow-scheduler, airflow-postgres, superset, portainer
+- **Services:** NodePort 30432 (PG), 30180 (Airflow), 30188 (Superset), 30777 (Portainer)
+- **Volumes:** postgresql-pvc, airflow-postgres-pvc
 
 ---
 
-## 11. Codigo Python
+## 11. Codigo do Projeto
 
-### Scripts Principais
+### Estrutura
+```
+projeto_empresa_data_lakers/
+├── cloud_functions/              # 3 Cloud Functions
+│   ├── csv_processor/            # Eventarc: GCS upload -> Bronze
+│   ├── data_generator/           # HTTP: gera dados fake
+│   └── pg_reference_extractor/   # HTTP: PG -> GCS via SSH
+├── dags/                         # 5 Airflow DAGs
+│   ├── mrhealth_daily_pipeline.py
+│   ├── mrhealth_data_quality.py
+│   ├── mrhealth_reference_refresh.py
+│   ├── mrhealth_data_retention.py
+│   └── mrhealth_backfill_monitor.py
+├── plugins/mrhealth/             # Airflow plugins package
+│   ├── quality/checks.py        # 6 data quality checks
+│   ├── config/loader.py         # Config + project_id loader
+│   └── callbacks/alerts.py      # Failure + SLA callbacks
+├── scripts/                      # 15 scripts operacionais (rodam LOCAL)
+├── sql/                          # 15 SQLs por layer
+│   ├── bronze/create_tables.sql
+│   ├── silver/01-03_*.sql
+│   └── gold/01-09_*.sql
+├── config/project_config.yaml    # Config centralizada
+├── k8s/                          # Manifests K8s
+├── tests/                        # 57+ testes (pytest)
+├── diagrams/                     # Excalidraw (EN + PT-BR)
+└── docs/                         # Este arquivo + credenciais
+```
+
+### Scripts Principais (executam LOCALMENTE)
+
 | Script | Funcao |
 |--------|--------|
-| `scripts/generate_fake_sales.py` | Gera CSVs de teste |
-| `scripts/upload_fake_data_to_gcs.py` | Upload para GCS |
-| `scripts/seed_postgresql.py` | Popula PostgreSQL |
-| `scripts/build_silver_layer.py` | Transforma Bronze->Silver |
-| `scripts/build_gold_layer.py` | Transforma Silver->Gold |
-| `scripts/build_aggregations.py` | Cria tabelas de agregacao |
+| `scripts/generate_fake_sales.py` | Gera CSVs de teste (Faker) |
+| `scripts/upload_fake_data_to_gcs.py` | Upload CSVs para GCS |
+| `scripts/seed_postgresql.py` | Popula PostgreSQL no K3s |
+| `scripts/deploy_phase1_infrastructure.py` | Cria datasets + tabelas BQ |
+| `scripts/build_silver_layer.py` | Executa SQLs Silver |
+| `scripts/build_gold_layer.py` | Executa SQLs Gold |
+| `scripts/build_aggregations.py` | Cria tabelas agregadas |
 
-### Cloud Functions
-| Funcao | Arquivo |
-|--------|---------|
-| csv-processor | `cloud_functions/csv_processor/main.py` |
-| pg-reference-extractor | `cloud_functions/pg_reference_extractor/main.py` |
-| data-generator | `cloud_functions/data_generator/main.py` |
+---
 
-### SQL
+## 12. Fluxo de Dados End-to-End
+
 ```
-sql/
-├── postgresql/
-│   ├── create_tables.sql
-│   └── create_readonly_user.sql
-├── bronze/
-│   └── create_tables.sql
-├── silver/
-│   ├── 01_reference_tables.sql
-│   ├── 02_orders.sql
-│   └── 03_order_items.sql
-└── gold/
-    ├── 01_dim_date.sql
-    ├── 02_dim_product.sql
-    ├── 03_dim_unit.sql
-    ├── 04_dim_geography.sql
-    ├── 05_fact_sales.sql
-    ├── 06_fact_order_items.sql
-    ├── 07_agg_daily_sales.sql
-    ├── 08_agg_unit_performance.sql
-    └── 09_agg_product_performance.sql
+PostgreSQL (K3s:30432)        CSV Generator (local/CF)
+   │                               │
+   │ 01:00 BRT (Scheduler)        │ Upload para GCS
+   ▼                               ▼
+┌──────────────────────────────────────────┐
+│        GCS: mrhealth-datalake-485810     │
+│  raw/reference_data/   raw/csv_sales/    │
+└──────────────────────────────────────────┘
+                 │
+                 │ Eventarc trigger (automatico)
+                 ▼
+         ┌──────────────┐
+         │ csv-processor │  Cloud Function
+         └──────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────────────┐
+│     BigQuery: mrhealth_bronze            │
+│  orders, order_items, products, etc      │
+└──────────────────────────────────────────┘
+                 │
+                 │ Airflow DAG daily_pipeline (02:00 BRT)
+                 ▼
+┌──────────────────────────────────────────┐
+│     BigQuery: mrhealth_silver            │
+│  Dados limpos, dedupados, normalizados   │
+└──────────────────────────────────────────┘
+                 │
+                 │ Airflow DAG (continuacao)
+                 ▼
+┌──────────────────────────────────────────┐
+│     BigQuery: mrhealth_gold              │
+│  Star Schema: dim_*, fact_*, agg_*       │
+└──────────────────────────────────────────┘
+                 │
+                 │ Airflow DAG data_quality (03:00 BRT)
+                 ▼
+┌──────────────────────────────────────────┐
+│  case_ficticio_monitoring                │
+│  data_quality_log, pipeline_metrics      │
+└──────────────────────────────────────────┘
+                 │
+                 ▼
+    ┌────────────┐  ┌─────────┐
+    │  Superset   │  │ Grafana │
+    │  Dashboards │  │ Metrics │
+    └────────────┘  └─────────┘
 ```
 
 ---
 
-## 12. Links Rapidos
+## 13. Links Rapidos
 
 | O que | URL/Comando |
 |-------|-------------|
@@ -489,64 +468,31 @@ sql/
 | BigQuery | https://console.cloud.google.com/bigquery?project=sixth-foundry-485810-e5 |
 | Cloud Storage | https://console.cloud.google.com/storage/browser/mrhealth-datalake-485810 |
 | Cloud Functions | https://console.cloud.google.com/functions?project=sixth-foundry-485810-e5 |
-| Cloud Scheduler | https://console.cloud.google.com/cloudscheduler?project=sixth-foundry-485810-e5 |
-| SSH K3s | `ssh <YOUR-SSH-USER>@<YOUR-K3S-IP>` |
-| **Portainer** | http://<YOUR-K3S-IP>:30777 |
-| **Airflow** | http://<YOUR-K3S-IP>:30180 (use $AIRFLOW_ADMIN_USER/$AIRFLOW_ADMIN_PASSWORD) |
-| **Superset** | http://<YOUR-K3S-IP>:30188 (use credentials from Secret Manager) |
-| Diagramas | https://excalidraw.com + arquivos em `diagrams/generated/` |
+| Airflow | http://15.235.61.251:30180 |
+| Grafana | http://15.235.61.251:30300 |
+| Superset | http://15.235.61.251:30188 |
+| Portainer | http://15.235.61.251:30777 |
+| SSH | `ssh arthur@15.235.61.251` |
+| PostgreSQL | `ssh -L 5432:localhost:30432 arthur@15.235.61.251` |
 
 ---
 
-## 13. Fluxo de Dados End-to-End
+## 14. Custo Mensal
 
-```
-PostgreSQL (K3s)          CSV Generator
-   │                          │
-   │ 01:00 BRT               │ Local ou Cloud Function
-   ▼                          ▼
-┌────────────────────────────────────────┐
-│        GCS: mrhealth-datalake-485810   │
-│  raw/reference_data/   raw/csv_sales/  │
-└────────────────────────────────────────┘
-                 │
-                 │ Eventarc trigger
-                 ▼
-         ┌──────────────┐
-         │ csv-processor│
-         │ Cloud Func   │
-         └──────────────┘
-                 │
-                 ▼
-┌────────────────────────────────────────┐
-│     BigQuery: mrhealth_bronze          │
-│  orders, order_items, products, etc    │
-└────────────────────────────────────────┘
-                 │
-                 │ Airflow DAG (02:00 BRT)
-                 ▼
-┌────────────────────────────────────────┐
-│     BigQuery: mrhealth_silver          │
-│  Dados limpos e dedupados              │
-└────────────────────────────────────────┘
-                 │
-                 │ Airflow DAG (continuacao)
-                 ▼
-┌────────────────────────────────────────┐
-│     BigQuery: mrhealth_gold            │
-│  Star Schema + Agregacoes              │
-│  dim_*, fact_*, agg_*                  │
-└────────────────────────────────────────┘
-                 │
-                 ▼
-         ┌──────────────┐
-         │   Superset   │
-         │  Dashboards  │
-         └──────────────┘
-```
+| Recurso | Uso | Free Tier Limit | Custo |
+|---------|-----|-----------------|-------|
+| BigQuery Storage | ~0.001 GB | 10 GB | $0.00 |
+| BigQuery Queries | ~0.01 TB/mes | 1 TB | $0.00 |
+| GCS Storage | ~0.001 GB | 5 GB | $0.00 |
+| Cloud Functions | ~100 invocacoes/dia | 2M/mes | $0.00 |
+| K3s Server | OVH (separado) | N/A | Custo proprio |
+| **Total GCP** | | | **$0.00/mes** |
 
 ---
 
-**Documento atualizado em 2026-02-03 06:21 BRT**
+**Documento atualizado em 2026-02-05**
 
-> **Changelog:** Airflow e Superset migrados para Kubernetes (namespace mrhealth-db)
+> **Changelog:**
+> - 2026-02-05: Grafana OSS deployed (BigQuery plugin), Superset-BigQuery configurado, 4 DAGs restantes testados
+> - 2026-02-05: Airflow 5 DAGs deployed (hostPath volumes), data_quality testado end-to-end 8/8 SUCCESS
+> - 2026-02-03: Airflow e Superset migrados para Kubernetes (namespace mrhealth-db)

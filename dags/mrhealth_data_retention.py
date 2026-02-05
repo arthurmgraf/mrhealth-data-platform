@@ -44,7 +44,7 @@ def calculate_storage(**context: Any) -> dict[str, Any]:
     project_id = get_project_id()
     bucket_name = config["storage"]["bucket"]
 
-    gcs_client = storage.Client()
+    gcs_client = storage.Client(project=project_id)
     bucket = gcs_client.bucket(bucket_name)
     gcs_bytes = sum(blob.size or 0 for blob in bucket.list_blobs())
     gcs_gb = gcs_bytes / (1024**3)
@@ -107,11 +107,12 @@ def archive_bronze(**context: Any) -> dict[str, Any]:
 def cleanup_gcs(**context: Any) -> dict[str, Any]:
     """Delete GCS CSV files older than 60 days."""
     config = load_config()
+    project_id = get_project_id()
     bucket_name = config["storage"]["bucket"]
     max_days = config.get("retention", {}).get("gcs_raw_max_days", 60)
     cutoff = datetime.now(timezone.utc) - timedelta(days=max_days)
 
-    client = storage.Client()
+    client = storage.Client(project=project_id)
     bucket = client.bucket(bucket_name)
     deleted = 0
     deleted_bytes = 0
