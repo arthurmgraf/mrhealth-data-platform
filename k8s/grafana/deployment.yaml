@@ -74,6 +74,9 @@ spec:
             - name: gcp-credentials
               mountPath: /opt/grafana/keys
               readOnly: true
+            - name: alerting-rules
+              mountPath: /etc/grafana/provisioning/alerting
+              readOnly: true
           resources:
             requests:
               cpu: 100m
@@ -113,3 +116,6 @@ spec:
           hostPath:
             path: /home/arthur/case_mrHealth/keys
             type: Directory
+        - name: alerting-rules
+          configMap:
+            name: grafana-alerting-rules

@@ -1,0 +1,188 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-alerting-rules
+  namespace: mrhealth-db
+  labels:
+    app: grafana
+    part-of: mrhealth
+data:
+  alerting.yaml: |
+    apiVersion: 1
+    groups:
+      - orgId: 1
+        name: mrhealth-pipeline
+        folder: MR Health Alerts
+        interval: 5m
+        rules:
+
+          - uid: alert-data-freshness
+            title: "Data Freshness - No New Data"
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 86400
+                  to: 0
+                datasourceUid: bigquery-mrhealth
+                model:
+                  rawSql: |
+                    SELECT
+                      TIMESTAMP_DIFF(
+                        CURRENT_TIMESTAMP(),
+                        MAX(order_date),
+                        HOUR
+                      ) AS hours_since_last_data
+                    FROM `sixth-foundry-485810-e5.mrhealth_gold.fact_sales`
+                  format: table
+              - refId: B
+                relativeTimeRange:
+                  from: 86400
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  type: reduce
+                  expression: A
+                  reducer: last
+                  settings:
+                    mode: dropNN
+              - refId: C
+                relativeTimeRange:
+                  from: 86400
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        type: gt
+                        params:
+                          - 48
+                      operator:
+                        type: and
+            noDataState: OK
+            execErrState: Error
+            for: 10m
+            annotations:
+              summary: "No new sales data received in the last 48 hours"
+              description: "The most recent order_date in fact_sales is more than 48 hours old. Check if the daily pipeline and data generator are running."
+            labels:
+              severity: warning
+              team: data-engineering
+
+      - orgId: 1
+        name: mrhealth-cost
+        folder: MR Health Alerts
+        interval: 1h
+        rules:
+
+          - uid: alert-free-tier-storage
+            title: "Free Tier - BigQuery Storage > 8GB"
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 3600
+                  to: 0
+                datasourceUid: bigquery-mrhealth
+                model:
+                  rawSql: |
+                    SELECT
+                      ROUND(
+                        SUM(total_billable_bytes) / POW(1024, 3),
+                        2
+                      ) AS storage_gb
+                    FROM `sixth-foundry-485810-e5.mrhealth_gold.INFORMATION_SCHEMA.TABLE_STORAGE`
+                  format: table
+              - refId: B
+                relativeTimeRange:
+                  from: 3600
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  type: reduce
+                  expression: A
+                  reducer: last
+                  settings:
+                    mode: dropNN
+              - refId: C
+                relativeTimeRange:
+                  from: 3600
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        type: gt
+                        params:
+                          - 8
+                      operator:
+                        type: and
+            noDataState: OK
+            execErrState: Error
+            for: 1h
+            annotations:
+              summary: "BigQuery Gold storage is approaching the 10GB free tier limit"
+              description: "Current storage exceeds 8GB. Free tier limit is 10GB. Consider running data retention DAG or archiving old data."
+            labels:
+              severity: warning
+              team: data-engineering
+
+          - uid: alert-free-tier-queries
+            title: "Free Tier - Query Volume > 800GB/month"
+            condition: C
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 3600
+                  to: 0
+                datasourceUid: bigquery-mrhealth
+                model:
+                  rawSql: |
+                    SELECT
+                      ROUND(
+                        SUM(total_bytes_processed) / POW(1024, 3),
+                        2
+                      ) AS query_gb_30d
+                    FROM `region-us.INFORMATION_SCHEMA.JOBS_BY_PROJECT`
+                    WHERE creation_time > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 DAY)
+                      AND state = 'DONE'
+                  format: table
+              - refId: B
+                relativeTimeRange:
+                  from: 3600
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  type: reduce
+                  expression: A
+                  reducer: last
+                  settings:
+                    mode: dropNN
+              - refId: C
+                relativeTimeRange:
+                  from: 3600
+                  to: 0
+                datasourceUid: __expr__
+                model:
+                  type: threshold
+                  expression: B
+                  conditions:
+                    - evaluator:
+                        type: gt
+                        params:
+                          - 800
+                      operator:
+                        type: and
+            noDataState: OK
+            execErrState: Error
+            for: 1h
+            annotations:
+              summary: "BigQuery query volume approaching the 1TB/month free tier limit"
+              description: "Over 800GB processed in the last 30 days. Free tier allows 1TB/month. Review heavy queries and optimize."
+            labels:
+              severity: warning
+              team: data-engineering

@@ -1,0 +1,461 @@
+superset:
+  base_url: "http://15.235.61.251:30188"
+  username: "admin"
+  password_env: "SUPERSET_PASSWORD"
+  database_name: "BigQuery MR Health"
+  dashboards:
+
+  # ═══════════════════════════════════════════════════════════════
+  # DASHBOARD 1: EXECUTIVE OVERVIEW
+  # Source: mrhealth_gold.agg_daily_sales
+  # 8 charts: 4 Big Numbers + Time Series + Pie + Bar + Donut
+  # ═══════════════════════════════════════════════════════════════
+  - name: "dashboard_executive"
+    title: "Executive Overview"
+    slug: "dashboard-executive"
+    datasets:
+
+      - name: "dashboard_executive_dataset_total_revenue"
+        chart_name: "dashboard_executive_chart_total_revenue"
+        viz_type: "big_number_total"
+        sql: |
+          SELECT
+            ROUND(SUM(total_revenue), 2) AS total_revenue
+          FROM `mrhealth_gold.agg_daily_sales`
+        params:
+          metric: "total_revenue"
+          subheader: "Total Revenue (R$)"
+          y_axis_format: ",.2f"
+
+      - name: "dashboard_executive_dataset_total_orders"
+        chart_name: "dashboard_executive_chart_total_orders"
+        viz_type: "big_number_total"
+        sql: |
+          SELECT
+            SUM(total_orders) AS total_orders
+          FROM `mrhealth_gold.agg_daily_sales`
+        params:
+          metric: "total_orders"
+          subheader: "Total Orders"
+          y_axis_format: ",d"
+
+      - name: "dashboard_executive_dataset_avg_order_value"
+        chart_name: "dashboard_executive_chart_avg_order_value"
+        viz_type: "big_number_total"
+        sql: |
+          SELECT
+            ROUND(
+              SUM(total_revenue) / NULLIF(SUM(total_orders), 0),
+              2
+            ) AS avg_order_value
+          FROM `mrhealth_gold.agg_daily_sales`
+        params:
+          metric: "avg_order_value"
+          subheader: "Avg Order Value (R$)"
+          y_axis_format: ",.2f"
+
+      - name: "dashboard_executive_dataset_cancellation_rate"
+        chart_name: "dashboard_executive_chart_cancellation_rate"
+        viz_type: "big_number_total"
+        sql: |
+          SELECT
+            ROUND(
+              100.0 * SUM(canceled_orders) / NULLIF(SUM(total_orders), 0),
+              2
+            ) AS cancellation_rate
+          FROM `mrhealth_gold.agg_daily_sales`
+        params:
+          metric: "cancellation_rate"
+          subheader: "Cancellation Rate (%)"
+          y_axis_format: ",.1f"
+
+      - name: "dashboard_executive_dataset_revenue_trend"
+        chart_name: "dashboard_executive_chart_revenue_trend"
+        viz_type: "echarts_timeseries_line"
+        sql: |
+          SELECT
+            order_date,
+            total_revenue,
+            online_revenue,
+            physical_revenue
+          FROM `mrhealth_gold.agg_daily_sales`
+          ORDER BY order_date
+        params:
+          x_axis: "order_date"
+          metrics: ["total_revenue", "online_revenue", "physical_revenue"]
+          rich_tooltip: true
+          show_legend: true
+
+      - name: "dashboard_executive_dataset_orders_by_channel"
+        chart_name: "dashboard_executive_chart_orders_by_channel"
+        viz_type: "pie"
+        sql: |
+          SELECT
+            'Online' AS channel,
+            SUM(online_orders) AS orders
+          FROM `mrhealth_gold.agg_daily_sales`
+          UNION ALL
+          SELECT
+            'Physical' AS channel,
+            SUM(physical_orders) AS orders
+          FROM `mrhealth_gold.agg_daily_sales`
+        params:
+          groupby: ["channel"]
+          metric: "orders"
+          show_labels: true
+          label_type: "key_value_percent"
+          color_scheme: "supersetColors"
+
+      - name: "dashboard_executive_dataset_revenue_by_weekday"
+        chart_name: "dashboard_executive_chart_revenue_by_weekday"
+        viz_type: "dist_bar"
+        sql: |
+          SELECT
+            day_of_week_name,
+            ROUND(SUM(total_revenue), 2) AS total_revenue,
+            SUM(total_orders) AS total_orders
+          FROM `mrhealth_gold.agg_daily_sales`
+          GROUP BY day_of_week_name
+          ORDER BY
+            CASE day_of_week_name
+              WHEN 'Monday' THEN 1
+              WHEN 'Tuesday' THEN 2
+              WHEN 'Wednesday' THEN 3
+              WHEN 'Thursday' THEN 4
+              WHEN 'Friday' THEN 5
+              WHEN 'Saturday' THEN 6
+              WHEN 'Sunday' THEN 7
+            END
+        params:
+          groupby: ["day_of_week_name"]
+          metrics: ["total_revenue"]
+          color_scheme: "supersetColors"
+          show_bar_value: true
+
+      - name: "dashboard_executive_dataset_weekend_vs_weekday"
+        chart_name: "dashboard_executive_chart_weekend_vs_weekday"
+        viz_type: "pie"
+        sql: |
+          SELECT
+            CASE WHEN is_weekend THEN 'Weekend' ELSE 'Weekday' END AS period_type,
+            ROUND(SUM(total_revenue), 2) AS total_revenue
+          FROM `mrhealth_gold.agg_daily_sales`
+          GROUP BY is_weekend
+        params:
+          groupby: ["period_type"]
+          metric: "total_revenue"
+          show_labels: true
+          label_type: "key_value_percent"
+          color_scheme: "supersetColors"
+          innerRadius: 40
+
+  # ═══════════════════════════════════════════════════════════════
+  # DASHBOARD 2: UNIT PERFORMANCE
+  # Source: mrhealth_gold.agg_unit_performance
+  # 6 charts: Bar H + Table + 3 Bar + Bar
+  # ═══════════════════════════════════════════════════════════════
+  - name: "dashboard_units"
+    title: "Unit Performance"
+    slug: "dashboard-units"
+    datasets:
+
+      - name: "dashboard_units_dataset_top_revenue"
+        chart_name: "dashboard_units_chart_top_revenue"
+        viz_type: "dist_bar"
+        sql: |
+          SELECT
+            unit_name,
+            ROUND(total_revenue, 2) AS total_revenue
+          FROM `mrhealth_gold.agg_unit_performance`
+          ORDER BY total_revenue DESC
+          LIMIT 10
+        params:
+          groupby: ["unit_name"]
+          metrics: ["total_revenue"]
+          color_scheme: "supersetColors"
+          show_bar_value: true
+
+      - name: "dashboard_units_dataset_ranking_table"
+        chart_name: "dashboard_units_chart_ranking_table"
+        viz_type: "table"
+        sql: |
+          SELECT
+            revenue_rank,
+            unit_name,
+            state_name,
+            total_orders,
+            ROUND(total_revenue, 2) AS total_revenue,
+            ROUND(avg_order_value, 2) AS avg_order_value,
+            ROUND(cancellation_rate, 1) AS cancellation_rate,
+            ROUND(online_pct, 1) AS online_pct
+          FROM mrhealth_gold.agg_unit_performance
+          ORDER BY revenue_rank
+        params:
+          all_columns: ["revenue_rank", "unit_name", "state_name", "total_orders", "total_revenue", "avg_order_value", "cancellation_rate", "online_pct"]
+          page_length: 50
+
+      - name: "dashboard_units_dataset_online_pct"
+        chart_name: "dashboard_units_chart_online_pct"
+        viz_type: "dist_bar"
+        sql: |
+          SELECT
+            unit_name,
+            ROUND(online_pct, 1) AS online_pct
+          FROM `mrhealth_gold.agg_unit_performance`
+          ORDER BY online_pct DESC
+          LIMIT 10
+        params:
+          groupby: ["unit_name"]
+          metrics: ["online_pct"]
+          color_scheme: "supersetColors"
+          show_bar_value: true
+
+      - name: "dashboard_units_dataset_cancellation_rate"
+        chart_name: "dashboard_units_chart_cancellation_rate"
+        viz_type: "dist_bar"
+        sql: |
+          SELECT
+            unit_name,
+            ROUND(cancellation_rate, 1) AS cancellation_rate
+          FROM `mrhealth_gold.agg_unit_performance`
+          WHERE cancellation_rate > 0
+          ORDER BY cancellation_rate DESC
+          LIMIT 10
+        params:
+          groupby: ["unit_name"]
+          metrics: ["cancellation_rate"]
+          color_scheme: "bnbColors"
+          show_bar_value: true
+
+      - name: "dashboard_units_dataset_revenue_by_state"
+        chart_name: "dashboard_units_chart_revenue_by_state"
+        viz_type: "dist_bar"
+        sql: |
+          SELECT
+            state_name,
+            ROUND(SUM(total_revenue), 2) AS total_revenue,
+            SUM(total_orders) AS total_orders,
+            COUNT(*) AS unit_count
+          FROM `mrhealth_gold.agg_unit_performance`
+          GROUP BY state_name
+          ORDER BY total_revenue DESC
+        params:
+          groupby: ["state_name"]
+          metrics: ["total_revenue"]
+          color_scheme: "supersetColors"
+          show_bar_value: true
+
+      - name: "dashboard_units_dataset_avg_order_value"
+        chart_name: "dashboard_units_chart_avg_order_value"
+        viz_type: "dist_bar"
+        sql: |
+          SELECT
+            unit_name,
+            ROUND(avg_order_value, 2) AS avg_order_value
+          FROM `mrhealth_gold.agg_unit_performance`
+          ORDER BY avg_order_value DESC
+          LIMIT 10
+        params:
+          groupby: ["unit_name"]
+          metrics: ["avg_order_value"]
+          color_scheme: "supersetColors"
+          show_bar_value: true
+
+  # ═══════════════════════════════════════════════════════════════
+  # DASHBOARD 3: PRODUCT ANALYTICS
+  # Source: mrhealth_gold.agg_product_performance
+  # 5 charts: 2 Bar + Table + Bar + Scatter
+  # ═══════════════════════════════════════════════════════════════
+  - name: "dashboard_products"
+    title: "Product Analytics"
+    slug: "dashboard-products"
+    datasets:
+
+      - name: "dashboard_products_dataset_top_revenue"
+        chart_name: "dashboard_products_chart_top_revenue"
+        viz_type: "dist_bar"
+        sql: |
+          SELECT
+            product_name,
+            ROUND(total_revenue, 2) AS total_revenue
+          FROM `mrhealth_gold.agg_product_performance`
+          ORDER BY total_revenue DESC
+          LIMIT 10
+        params:
+          groupby: ["product_name"]
+          metrics: ["total_revenue"]
+          color_scheme: "supersetColors"
+          show_bar_value: true
+
+      - name: "dashboard_products_dataset_top_volume"
+        chart_name: "dashboard_products_chart_top_volume"
+        viz_type: "dist_bar"
+        sql: |
+          SELECT
+            product_name,
+            total_quantity_sold
+          FROM `mrhealth_gold.agg_product_performance`
+          ORDER BY total_quantity_sold DESC
+          LIMIT 10
+        params:
+          groupby: ["product_name"]
+          metrics: ["total_quantity_sold"]
+          color_scheme: "bnbColors"
+          show_bar_value: true
+
+      - name: "dashboard_products_dataset_product_table"
+        chart_name: "dashboard_products_chart_product_table"
+        viz_type: "table"
+        sql: |
+          SELECT
+            revenue_rank,
+            product_name,
+            ROUND(total_revenue, 2) AS total_revenue,
+            total_quantity_sold,
+            total_orders,
+            ROUND(avg_unit_price, 2) AS avg_unit_price,
+            ROUND(unit_penetration_pct, 1) AS unit_penetration_pct
+          FROM mrhealth_gold.agg_product_performance
+          ORDER BY revenue_rank
+        params:
+          all_columns: ["revenue_rank", "product_name", "total_revenue", "total_quantity_sold", "total_orders", "avg_unit_price", "unit_penetration_pct"]
+          page_length: 50
+
+      - name: "dashboard_products_dataset_unit_penetration"
+        chart_name: "dashboard_products_chart_unit_penetration"
+        viz_type: "dist_bar"
+        sql: |
+          SELECT
+            product_name,
+            ROUND(unit_penetration_pct, 1) AS unit_penetration_pct
+          FROM `mrhealth_gold.agg_product_performance`
+          ORDER BY unit_penetration_pct DESC
+          LIMIT 15
+        params:
+          groupby: ["product_name"]
+          metrics: ["unit_penetration_pct"]
+          color_scheme: "supersetColors"
+          show_bar_value: true
+
+      - name: "dashboard_products_dataset_price_vs_revenue"
+        chart_name: "dashboard_products_chart_price_vs_revenue"
+        viz_type: "bubble_v2"
+        sql: |
+          SELECT
+            product_name,
+            ROUND(avg_unit_price, 2) AS avg_unit_price,
+            ROUND(total_revenue, 2) AS total_revenue,
+            total_quantity_sold
+          FROM `mrhealth_gold.agg_product_performance`
+        params:
+          x: "avg_unit_price"
+          "y": "total_revenue"
+          size: "total_quantity_sold"
+          entity: "product_name"
+
+  # ═══════════════════════════════════════════════════════════════
+  # DASHBOARD 4: ORDER DETAIL
+  # Source: mrhealth_gold.fact_sales
+  # 6 charts: Time Series + Histogram + Pie + Big Number + Mixed + Table
+  # ═══════════════════════════════════════════════════════════════
+  - name: "dashboard_orders"
+    title: "Order Detail"
+    slug: "dashboard-orders"
+    datasets:
+
+      - name: "dashboard_orders_dataset_delivery_fee_trend"
+        chart_name: "dashboard_orders_chart_delivery_fee_trend"
+        viz_type: "echarts_timeseries_line"
+        sql: |
+          SELECT
+            order_date,
+            ROUND(AVG(delivery_fee), 2) AS avg_delivery_fee,
+            ROUND(SUM(delivery_fee), 2) AS total_delivery_fees
+          FROM `mrhealth_gold.fact_sales`
+          GROUP BY order_date
+          ORDER BY order_date
+        params:
+          x_axis: "order_date"
+          metrics: ["avg_delivery_fee", "total_delivery_fees"]
+          rich_tooltip: true
+          show_legend: true
+
+      - name: "dashboard_orders_dataset_value_distribution"
+        chart_name: "dashboard_orders_chart_value_distribution"
+        viz_type: "histogram"
+        sql: |
+          SELECT
+            order_value
+          FROM `mrhealth_gold.fact_sales`
+          WHERE order_status != 'Cancelado'
+        params:
+          all_columns: ["order_value"]
+          column: "order_value"
+          bins: 10
+          cumulative: false
+          normalized: false
+
+      - name: "dashboard_orders_dataset_status_breakdown"
+        chart_name: "dashboard_orders_chart_status_breakdown"
+        viz_type: "pie"
+        sql: |
+          SELECT
+            order_status,
+            COUNT(*) AS order_count
+          FROM `mrhealth_gold.fact_sales`
+          GROUP BY order_status
+          ORDER BY order_count DESC
+        params:
+          groupby: ["order_status"]
+          metric: "order_count"
+          show_labels: true
+          label_type: "key_value_percent"
+          color_scheme: "supersetColors"
+
+      - name: "dashboard_orders_dataset_items_per_order"
+        chart_name: "dashboard_orders_chart_items_per_order"
+        viz_type: "big_number_total"
+        sql: |
+          SELECT
+            ROUND(AVG(total_items), 2) AS avg_items_per_order
+          FROM `mrhealth_gold.fact_sales`
+        params:
+          metric: "avg_items_per_order"
+          subheader: "Avg Items per Order"
+          y_axis_format: ",.1f"
+
+      - name: "dashboard_orders_dataset_revenue_by_channel"
+        chart_name: "dashboard_orders_chart_revenue_by_channel"
+        viz_type: "dist_bar"
+        sql: |
+          SELECT
+            order_type,
+            ROUND(SUM(order_value), 2) AS total_revenue,
+            COUNT(*) AS order_count,
+            ROUND(AVG(order_value), 2) AS avg_order_value
+          FROM `mrhealth_gold.fact_sales`
+          GROUP BY order_type
+        params:
+          groupby: ["order_type"]
+          metrics: ["total_revenue"]
+          color_scheme: "supersetColors"
+          show_bar_value: true
+
+      - name: "dashboard_orders_dataset_top_orders"
+        chart_name: "dashboard_orders_chart_top_orders"
+        viz_type: "table"
+        sql: |
+          SELECT
+            order_id,
+            order_date,
+            order_type,
+            order_status,
+            total_items,
+            ROUND(order_value, 2) AS order_value,
+            ROUND(delivery_fee, 2) AS delivery_fee
+          FROM mrhealth_gold.fact_sales
+          ORDER BY order_value DESC
+          LIMIT 20
+        params:
+          all_columns: ["order_id", "order_date", "order_type", "order_status", "total_items", "order_value", "delivery_fee"]
+          page_length: 20
