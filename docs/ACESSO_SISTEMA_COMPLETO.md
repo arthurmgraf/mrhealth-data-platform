@@ -24,6 +24,106 @@
 | Grafana | RUNNING | http://15.235.61.251:30300 |
 | Portainer | RUNNING | http://15.235.61.251:30777 |
 
+---
+
+## Guia Rápido de Acesso por Etapa
+
+> **Legenda de Localização:**
+> - 🖥️ **LOCAL** = Máquina de desenvolvimento (Windows)
+> - 🖧 **SERVIDOR** = Servidor on-premise OVH (15.235.61.251) com K3s
+> - ☁️ **GCP** = Google Cloud Platform (projeto `sixth-foundry-485810-e5`)
+
+---
+
+### 🔹 Etapa 1: Ingestão de Dados (Sources → GCS)
+
+| Fonte | Localização | Como Acessar |
+|-------|-------------|--------------|
+| **PostgreSQL (dados de referência)** | 🖧 SERVIDOR | `ssh -L 5432:localhost:30432 arthur@15.235.61.251` → `psql -h localhost -U mrhealth_admin -d mrhealth` |
+| **Scripts de geração de dados** | 🖥️ LOCAL | `scripts/generate_fake_sales.py`, `scripts/seed_postgresql.py` |
+| **CSVs de Vendas (raw data)** | ☁️ GCP | `gcloud storage ls gs://mrhealth-datalake-485810/raw/csv_sales/` |
+| **Dados de Referência no GCS** | ☁️ GCP | `gcloud storage ls gs://mrhealth-datalake-485810/raw/reference_data/` |
+| **Cloud Function csv-processor** | ☁️ GCP | https://console.cloud.google.com/functions/details/us-central1/csv-processor?project=sixth-foundry-485810-e5 |
+| **Cloud Function pg-reference-extractor** | ☁️ GCP | Extrai dados do PG (SERVIDOR) e envia para GCS |
+| **Código das Cloud Functions** | 🖥️ LOCAL | `cloud_functions/csv_processor/`, `cloud_functions/pg_reference_extractor/` |
+
+---
+
+### 🔹 Etapa 2: Camada Bronze (Raw Data no BigQuery)
+
+| Item | Localização | Como Acessar |
+|------|-------------|--------------|
+| **Dataset mrhealth_bronze** | ☁️ GCP | https://console.cloud.google.com/bigquery?project=sixth-foundry-485810-e5 |
+| **Tabelas** | ☁️ GCP | orders, order_items, products, units, states, countries |
+| **Query rápida** | ☁️ GCP | `SELECT COUNT(*) FROM sixth-foundry-485810-e5.mrhealth_bronze.orders;` |
+| **SQL de criação** | 🖥️ LOCAL | `sql/bronze/create_tables.sql` |
+
+---
+
+### 🔹 Etapa 3: Camada Silver (Dados Limpos)
+
+| Item | Localização | Como Acessar |
+|------|-------------|--------------|
+| **Dataset mrhealth_silver** | ☁️ GCP | BigQuery Console, mesmo projeto |
+| **DAG que popula** | 🖧 SERVIDOR | Airflow DAG `mrhealth_daily_pipeline` (02:00 BRT) |
+| **Trigger manual** | 🖧 SERVIDOR | http://15.235.61.251:30180 → DAGs → `mrhealth_daily_pipeline` → Trigger |
+| **SQLs de transformação** | 🖥️ LOCAL | `sql/silver/01_transform_orders.sql`, `02_transform_items.sql`, `03_transform_references.sql` |
+| **Cópia no servidor** | 🖧 SERVIDOR | `/home/arthur/case_mrHealth/sql/silver/` (montado via hostPath) |
+
+---
+
+### 🔹 Etapa 4: Camada Gold (Star Schema)
+
+| Item | Localização | Como Acessar |
+|------|-------------|--------------|
+| **Dataset mrhealth_gold** | ☁️ GCP | BigQuery Console |
+| **Dimensões** | ☁️ GCP | `dim_date`, `dim_product`, `dim_unit`, `dim_geography` |
+| **Fatos** | ☁️ GCP | `fact_sales` (grain: pedido), `fact_order_items` (grain: item) |
+| **Agregações** | ☁️ GCP | `agg_daily_sales`, `agg_unit_performance`, `agg_product_performance` |
+| **SQLs de criação** | 🖥️ LOCAL | `sql/gold/01_dim_date.sql` até `sql/gold/09_agg_product_performance.sql` |
+| **Cópia no servidor** | 🖧 SERVIDOR | `/home/arthur/case_mrHealth/sql/gold/` (montado via hostPath) |
+
+---
+
+### 🔹 Etapa 5: Qualidade e Monitoramento
+
+| Item | Localização | Como Acessar |
+|------|-------------|--------------|
+| **Dataset monitoring** | ☁️ GCP | `case_ficticio_monitoring` no BigQuery |
+| **Logs de qualidade** | ☁️ GCP | `SELECT * FROM sixth-foundry-485810-e5.case_ficticio_monitoring.data_quality_log ORDER BY execution_timestamp DESC LIMIT 10;` |
+| **Métricas do pipeline** | ☁️ GCP | Tabela `case_ficticio_monitoring.pipeline_metrics` |
+| **Uso do Free Tier** | ☁️ GCP | Tabela `case_ficticio_monitoring.free_tier_usage` |
+| **DAG de quality checks** | 🖧 SERVIDOR | Airflow → `mrhealth_data_quality` (03:00 BRT) |
+| **Código dos checks** | 🖥️ LOCAL | `plugins/mrhealth/quality/checks.py` |
+| **Dashboard Grafana** | 🖧 SERVIDOR | http://15.235.61.251:30300 |
+
+---
+
+### 🔹 Etapa 6: Visualização e Dashboards
+
+| Ferramenta | Localização | Acesso | Propósito |
+|------------|-------------|--------|-----------|
+| **Superset** | 🖧 SERVIDOR | http://15.235.61.251:30188 | Dashboards de negócio (vendas, produtos) |
+| **Grafana** | 🖧 SERVIDOR | http://15.235.61.251:30300 | Monitoramento técnico (pipeline health) |
+| **Portainer** | 🖧 SERVIDOR | http://15.235.61.251:30777 | Gestão visual do K3s cluster |
+| **Airflow UI** | 🖧 SERVIDOR | http://15.235.61.251:30180 | Orquestração e logs de DAGs |
+| **BigQuery Console** | ☁️ GCP | https://console.cloud.google.com/bigquery | Queries ad-hoc e exploração |
+
+---
+
+### 🔹 Etapa 7: Operações e Manutenção
+
+| Operação | Localização | Comando/Acesso |
+|----------|-------------|----------------|
+| **SSH para servidor** | 🖧 SERVIDOR | `ssh arthur@15.235.61.251` |
+| **Ver pods Kubernetes** | 🖧 SERVIDOR | `kubectl get pods -n mrhealth-db` |
+| **Logs do Airflow** | 🖧 SERVIDOR | `kubectl logs -n mrhealth-db deployment/airflow-scheduler --tail=50` |
+| **Reprocessar DAG** | 🖧 SERVIDOR | `kubectl exec -n mrhealth-db deployment/airflow-scheduler -- airflow dags trigger <dag_name>` |
+| **Verificar Cloud Functions** | ☁️ GCP | `gcloud functions logs read csv-processor --project=sixth-foundry-485810-e5 --limit=20` |
+| **Deploy de manifests K8s** | 🖥️ LOCAL | `k8s/*.yaml` → aplicar com `kubectl apply -f` |
+| **Código-fonte do projeto** | 🖥️ LOCAL | `projeto_empresa_data_lakers/` |
+| **Cópia operacional (DAGs, plugins, SQL)** | 🖧 SERVIDOR | `/home/arthur/case_mrHealth/` |
+
 > **Credenciais:** Todas as senhas estao em `docs/CREDENCIAIS_SEGURAS.md` (arquivo no .gitignore)
 
 ---
