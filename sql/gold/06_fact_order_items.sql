@@ -1,4 +1,4 @@
--- Case Fictício - Teste -- Gold Layer: Order Items Fact Table
+-- MR. HEALTH Data Platform -- Gold Layer: Order Items Fact Table
 -- ===================================================
 --
 -- Item-level fact table for detailed product analysis.
@@ -8,10 +8,10 @@
 -- Partitioning: By order_date for performance
 -- Clustering: By product_key for product analysis
 --
--- Author: Arthur Graf -- Case Fictício - Teste Project
+-- Author: Arthur Graf -- MR. HEALTH Data Platform
 -- Date: January 2026
 
-CREATE OR REPLACE TABLE `sixth-foundry-485810-e5.case_ficticio_gold.fact_order_items`
+CREATE OR REPLACE TABLE `{PROJECT_ID}.mrhealth_gold.fact_order_items`
 PARTITION BY order_date
 CLUSTER BY product_key
 AS
@@ -41,6 +41,6 @@ SELECT
   -- Metadata
   oi._ingest_date
 
-FROM `sixth-foundry-485810-e5.case_ficticio_silver.order_items` oi
-JOIN `sixth-foundry-485810-e5.case_ficticio_silver.orders` o
+FROM `{PROJECT_ID}.mrhealth_silver.order_items` oi
+JOIN `{PROJECT_ID}.mrhealth_silver.orders` o
   ON oi.order_id = o.order_id;

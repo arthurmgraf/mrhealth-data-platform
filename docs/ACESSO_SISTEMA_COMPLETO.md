@@ -9,7 +9,7 @@
 
 | Componente | Status | Acesso |
 |------------|--------|--------|
-| GCP Project | ATIVO | `sixth-foundry-485810-e5` |
+| GCP Project | ATIVO | `your-gcp-project-id` |
 | GCS Bucket | ATIVO | 19 arquivos CSV + 4 referencias |
 | Cloud Functions | 3 ATIVAS | csv-processor, pg-reference-extractor, data-generator |
 | Cloud Scheduler | 1 ATIVO | pg-reference-extraction (01:00 BRT) |
@@ -31,7 +31,7 @@
 > **Legenda de Localização:**
 > - 🖥️ **LOCAL** = Máquina de desenvolvimento (Windows)
 > - 🖧 **SERVIDOR** = Servidor on-premise OVH (15.235.61.251) com K3s
-> - ☁️ **GCP** = Google Cloud Platform (projeto `sixth-foundry-485810-e5`)
+> - ☁️ **GCP** = Google Cloud Platform (projeto `your-gcp-project-id`)
 
 ---
 
@@ -43,7 +43,7 @@
 | **Scripts de geração de dados** | 🖥️ LOCAL | `scripts/generate_fake_sales.py`, `scripts/seed_postgresql.py` |
 | **CSVs de Vendas (raw data)** | ☁️ GCP | `gcloud storage ls gs://mrhealth-datalake-485810/raw/csv_sales/` |
 | **Dados de Referência no GCS** | ☁️ GCP | `gcloud storage ls gs://mrhealth-datalake-485810/raw/reference_data/` |
-| **Cloud Function csv-processor** | ☁️ GCP | https://console.cloud.google.com/functions/details/us-central1/csv-processor?project=sixth-foundry-485810-e5 |
+| **Cloud Function csv-processor** | ☁️ GCP | https://console.cloud.google.com/functions/details/us-central1/csv-processor?project=your-gcp-project-id |
 | **Cloud Function pg-reference-extractor** | ☁️ GCP | Extrai dados do PG (SERVIDOR) e envia para GCS |
 | **Código das Cloud Functions** | 🖥️ LOCAL | `cloud_functions/csv_processor/`, `cloud_functions/pg_reference_extractor/` |
 
@@ -53,9 +53,9 @@
 
 | Item | Localização | Como Acessar |
 |------|-------------|--------------|
-| **Dataset mrhealth_bronze** | ☁️ GCP | https://console.cloud.google.com/bigquery?project=sixth-foundry-485810-e5 |
+| **Dataset mrhealth_bronze** | ☁️ GCP | https://console.cloud.google.com/bigquery?project=your-gcp-project-id |
 | **Tabelas** | ☁️ GCP | orders, order_items, products, units, states, countries |
-| **Query rápida** | ☁️ GCP | `SELECT COUNT(*) FROM sixth-foundry-485810-e5.mrhealth_bronze.orders;` |
+| **Query rápida** | ☁️ GCP | `SELECT COUNT(*) FROM your-gcp-project-id.mrhealth_bronze.orders;` |
 | **SQL de criação** | 🖥️ LOCAL | `sql/bronze/create_tables.sql` |
 
 ---
@@ -89,10 +89,10 @@
 
 | Item | Localização | Como Acessar |
 |------|-------------|--------------|
-| **Dataset monitoring** | ☁️ GCP | `case_ficticio_monitoring` no BigQuery |
-| **Logs de qualidade** | ☁️ GCP | `SELECT * FROM sixth-foundry-485810-e5.case_ficticio_monitoring.data_quality_log ORDER BY execution_timestamp DESC LIMIT 10;` |
-| **Métricas do pipeline** | ☁️ GCP | Tabela `case_ficticio_monitoring.pipeline_metrics` |
-| **Uso do Free Tier** | ☁️ GCP | Tabela `case_ficticio_monitoring.free_tier_usage` |
+| **Dataset monitoring** | ☁️ GCP | `mrhealth_monitoring` no BigQuery |
+| **Logs de qualidade** | ☁️ GCP | `SELECT * FROM your-gcp-project-id.mrhealth_monitoring.data_quality_log ORDER BY execution_timestamp DESC LIMIT 10;` |
+| **Métricas do pipeline** | ☁️ GCP | Tabela `mrhealth_monitoring.pipeline_metrics` |
+| **Uso do Free Tier** | ☁️ GCP | Tabela `mrhealth_monitoring.free_tier_usage` |
 | **DAG de quality checks** | 🖧 SERVIDOR | Airflow → `mrhealth_data_quality` (03:00 BRT) |
 | **Código dos checks** | 🖥️ LOCAL | `plugins/mrhealth/quality/checks.py` |
 | **Dashboard Grafana** | 🖧 SERVIDOR | http://15.235.61.251:30300 |
@@ -119,7 +119,7 @@
 | **Ver pods Kubernetes** | 🖧 SERVIDOR | `kubectl get pods -n mrhealth-db` |
 | **Logs do Airflow** | 🖧 SERVIDOR | `kubectl logs -n mrhealth-db deployment/airflow-scheduler --tail=50` |
 | **Reprocessar DAG** | 🖧 SERVIDOR | `kubectl exec -n mrhealth-db deployment/airflow-scheduler -- airflow dags trigger <dag_name>` |
-| **Verificar Cloud Functions** | ☁️ GCP | `gcloud functions logs read csv-processor --project=sixth-foundry-485810-e5 --limit=20` |
+| **Verificar Cloud Functions** | ☁️ GCP | `gcloud functions logs read csv-processor --project=your-gcp-project-id --limit=20` |
 | **Deploy de manifests K8s** | 🖥️ LOCAL | `k8s/*.yaml` → aplicar com `kubectl apply -f` |
 | **Código-fonte do projeto** | 🖥️ LOCAL | `projeto_empresa_data_lakers/` |
 | **Cópia operacional (DAGs, plugins, SQL)** | 🖧 SERVIDOR | `/home/arthur/case_mrHealth/` |
@@ -131,13 +131,13 @@
 ## 1. Google Cloud Platform
 
 ### Console
-**URL:** https://console.cloud.google.com/?project=sixth-foundry-485810-e5
+**URL:** https://console.cloud.google.com/?project=your-gcp-project-id
 **Conta:** arthurmgraf@gmail.com
 
 ### Autenticacao
 ```bash
 gcloud auth list
-gcloud config set project sixth-foundry-485810-e5
+gcloud config set project your-gcp-project-id
 ```
 
 ---
@@ -177,11 +177,11 @@ gcloud storage ls --recursive gs://mrhealth-datalake-485810/raw/csv_sales/
 | pg-reference-extractor | HTTP (Cloud Scheduler) | Python 3.11 | https://pg-reference-extractor-f7wgmun2nq-uc.a.run.app |
 | data-generator | HTTP | Python 3.11 | (via gcloud functions list) |
 
-**Console:** https://console.cloud.google.com/functions?project=sixth-foundry-485810-e5
+**Console:** https://console.cloud.google.com/functions?project=your-gcp-project-id
 
 ```bash
-gcloud functions list --project=sixth-foundry-485810-e5
-gcloud functions logs read csv-processor --project=sixth-foundry-485810-e5 --region=us-central1 --limit=20
+gcloud functions list --project=your-gcp-project-id
+gcloud functions logs read csv-processor --project=your-gcp-project-id --region=us-central1 --limit=20
 ```
 
 ---
@@ -192,13 +192,13 @@ gcloud functions logs read csv-processor --project=sixth-foundry-485810-e5 --reg
 |-----|---------|----------|
 | pg-reference-extraction | `0 1 * * *` (01:00 BRT) | America/Sao_Paulo |
 
-**Console:** https://console.cloud.google.com/cloudscheduler?project=sixth-foundry-485810-e5
+**Console:** https://console.cloud.google.com/cloudscheduler?project=your-gcp-project-id
 
 ---
 
 ## 5. BigQuery
 
-**Console:** https://console.cloud.google.com/bigquery?project=sixth-foundry-485810-e5
+**Console:** https://console.cloud.google.com/bigquery?project=your-gcp-project-id
 
 ### Datasets
 
@@ -207,7 +207,7 @@ gcloud functions logs read csv-processor --project=sixth-foundry-485810-e5 --reg
 | `mrhealth_bronze` | 6 | Dados brutos ingeridos via csv-processor |
 | `mrhealth_silver` | 6 | Dados limpos e dedupados |
 | `mrhealth_gold` | 9 | Star schema (Kimball) + agregacoes |
-| `case_ficticio_monitoring` | 3 | Quality logs, pipeline metrics, free tier usage |
+| `mrhealth_monitoring` | 3 | Quality logs, pipeline metrics, free tier usage |
 
 ### Tabelas por Layer
 
@@ -252,7 +252,7 @@ gcloud functions logs read csv-processor --project=sixth-foundry-485810-e5 --reg
 > - `fact_order_items` TEM product_key (grain = item). Tem: item_id, order_id, date_key, unit_key, product_key
 > - Colunas Gold usam nomes em ingles: product_name, unit_name (nao nome_produto, nome_unidade)
 
-**MONITORING (case_ficticio_monitoring)**
+**MONITORING (mrhealth_monitoring)**
 
 | Tabela | Descricao |
 |--------|-----------|
@@ -263,21 +263,21 @@ gcloud functions logs read csv-processor --project=sixth-foundry-485810-e5 --reg
 ### Queries de Validacao
 ```sql
 -- Bronze: total de pedidos
-SELECT COUNT(*) FROM `sixth-foundry-485810-e5.mrhealth_bronze.orders`;
+SELECT COUNT(*) FROM `your-gcp-project-id.mrhealth_bronze.orders`;
 
 -- Gold: fact_sales com dimensoes
 SELECT
   d.full_date,
   u.unit_name,
   f.order_value
-FROM `sixth-foundry-485810-e5.mrhealth_gold.fact_sales` f
-JOIN `sixth-foundry-485810-e5.mrhealth_gold.dim_date` d ON f.date_key = d.date_key
-JOIN `sixth-foundry-485810-e5.mrhealth_gold.dim_unit` u ON f.unit_key = u.unit_key
+FROM `your-gcp-project-id.mrhealth_gold.fact_sales` f
+JOIN `your-gcp-project-id.mrhealth_gold.dim_date` d ON f.date_key = d.date_key
+JOIN `your-gcp-project-id.mrhealth_gold.dim_unit` u ON f.unit_key = u.unit_key
 LIMIT 10;
 
 -- Quality: ultimos checks
 SELECT check_name, result, actual_value, execution_timestamp
-FROM `sixth-foundry-485810-e5.case_ficticio_monitoring.data_quality_log`
+FROM `your-gcp-project-id.mrhealth_monitoring.data_quality_log`
 ORDER BY execution_timestamp DESC
 LIMIT 10;
 ```
@@ -547,7 +547,7 @@ PostgreSQL (K3s:30432)        CSV Generator (local/CF)
                  │ Airflow DAG data_quality (03:00 BRT)
                  ▼
 ┌──────────────────────────────────────────┐
-│  case_ficticio_monitoring                │
+│  mrhealth_monitoring                │
 │  data_quality_log, pipeline_metrics      │
 └──────────────────────────────────────────┘
                  │
@@ -564,10 +564,10 @@ PostgreSQL (K3s:30432)        CSV Generator (local/CF)
 
 | O que | URL/Comando |
 |-------|-------------|
-| GCP Console | https://console.cloud.google.com/?project=sixth-foundry-485810-e5 |
-| BigQuery | https://console.cloud.google.com/bigquery?project=sixth-foundry-485810-e5 |
+| GCP Console | https://console.cloud.google.com/?project=your-gcp-project-id |
+| BigQuery | https://console.cloud.google.com/bigquery?project=your-gcp-project-id |
 | Cloud Storage | https://console.cloud.google.com/storage/browser/mrhealth-datalake-485810 |
-| Cloud Functions | https://console.cloud.google.com/functions?project=sixth-foundry-485810-e5 |
+| Cloud Functions | https://console.cloud.google.com/functions?project=your-gcp-project-id |
 | Airflow | http://15.235.61.251:30180 |
 | Grafana | http://15.235.61.251:30300 |
 | Superset | http://15.235.61.251:30188 |

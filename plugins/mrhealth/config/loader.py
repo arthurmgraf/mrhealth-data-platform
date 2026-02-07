@@ -1,13 +1,11 @@
 """
 Centralized Config Loader
 ===========================
-Loads project_config.yaml with lru_cache for performance.
-Used by all DAGs and operators to access project configuration.
+Loads project_config.yaml for all DAGs and operators.
 """
 from __future__ import annotations
 
 import os
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -21,18 +19,27 @@ SQL_BASE = Path(
     os.environ.get("MRHEALTH_SQL_PATH", "/opt/airflow/sql")
 )
 
+_config_cache: dict[str, Any] | None = None
 
-@lru_cache(maxsize=1)
+
 def load_config() -> dict[str, Any]:
-    """Load and cache project configuration."""
+    """Load and cache project configuration.
+
+    Unlike @lru_cache, this approach does not permanently cache exceptions.
+    If the config file is temporarily unavailable, the next call will retry.
+    """
+    global _config_cache
+    if _config_cache is not None:
+        return _config_cache
     with open(CONFIG_PATH, "r") as f:
-        return yaml.safe_load(f)
+        _config_cache = yaml.safe_load(f)
+    return _config_cache
 
 
 def get_project_id() -> str:
     config = load_config()
     project_id = config["project"]["id"]
-    if project_id.startswith("${"):
+    if isinstance(project_id, str) and project_id.startswith("${"):
         return os.environ.get("GCP_PROJECT_ID", "")
     return project_id
 

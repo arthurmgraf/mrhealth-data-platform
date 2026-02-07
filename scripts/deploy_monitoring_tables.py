@@ -1,7 +1,7 @@
 """
 Deploy Monitoring Tables
 =========================
-Creates the 3 monitoring tables in BigQuery dataset case_ficticio_monitoring.
+Creates the 3 monitoring tables in BigQuery dataset mrhealth_monitoring.
 Reads SQL files from sql/monitoring/ and executes them.
 
 Usage:
@@ -38,7 +38,7 @@ def main() -> None:
     project_id = get_project_id()
     client = bigquery.Client(project=project_id)
 
-    dataset_id = f"{project_id}.case_ficticio_monitoring"
+    dataset_id = f"{project_id}.mrhealth_monitoring"
     dataset = bigquery.Dataset(dataset_id)
     dataset.location = "US"
     dataset.description = "Pipeline metrics and data quality logs"

@@ -20,8 +20,8 @@ gcloud functions deploy pg-reference-extractor \
   --trigger-http \
   --memory=256MB \
   --timeout=300s \
-  --service-account=pg-extractor-sa@sixth-foundry-485810-e5.iam.gserviceaccount.com \
-  --set-env-vars="PROJECT_ID=sixth-foundry-485810-e5,BUCKET_NAME=mrhealth-datalake-485810"
+  --service-account=pg-extractor-sa@${GCP_PROJECT_ID}.iam.gserviceaccount.com \
+  --set-env-vars="PROJECT_ID=${GCP_PROJECT_ID},BUCKET_NAME=${GCS_BUCKET_NAME}"
 ```
 
 ## Teste Manual
@@ -45,8 +45,8 @@ bash scripts/setup_pg_scheduler.sh
 gcloud functions logs read pg-reference-extractor --gen2 --region=us-central1 --limit=10
 
 # CSVs gerados
-gsutil ls gs://mrhealth-datalake-485810/raw/reference_data/
+gsutil ls gs://${GCS_BUCKET_NAME}/raw/reference_data/
 
 # Conteudo
-gsutil cat gs://mrhealth-datalake-485810/raw/reference_data/produto.csv | head -5
+gsutil cat gs://${GCS_BUCKET_NAME}/raw/reference_data/produto.csv | head -5
 ```

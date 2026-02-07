@@ -1,9 +1,9 @@
--- Case Fictício - Teste -- Bronze Layer Table DDL
--- Project: case_ficticio-data-mvp-arthur
--- Dataset: case_ficticio_bronze
+-- MR. HEALTH Data Platform -- Bronze Layer Table DDL
+-- Project: {PROJECT_ID}
+-- Dataset: mrhealth_bronze
 
 -- Bronze: Orders
-CREATE TABLE IF NOT EXISTS `case_ficticio-data-mvp-arthur.case_ficticio_bronze.orders` (
+CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.mrhealth_bronze.orders` (
   id_unidade INT64 NOT NULL,
   id_pedido STRING NOT NULL,
   tipo_pedido STRING,
@@ -23,7 +23,7 @@ OPTIONS(
 );
 
 -- Bronze: Order Items
-CREATE TABLE IF NOT EXISTS `case_ficticio-data-mvp-arthur.case_ficticio_bronze.order_items` (
+CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.mrhealth_bronze.order_items` (
   id_pedido STRING NOT NULL,
   id_item_pedido STRING NOT NULL,
   id_produto INT64,
@@ -41,7 +41,7 @@ OPTIONS(
 );
 
 -- Bronze: Products (reference)
-CREATE TABLE IF NOT EXISTS `case_ficticio-data-mvp-arthur.case_ficticio_bronze.products` (
+CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.mrhealth_bronze.products` (
   id_produto INT64 NOT NULL,
   nome_produto STRING,
   _ingest_timestamp TIMESTAMP
@@ -52,7 +52,7 @@ OPTIONS(
 );
 
 -- Bronze: Units (reference)
-CREATE TABLE IF NOT EXISTS `case_ficticio-data-mvp-arthur.case_ficticio_bronze.units` (
+CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.mrhealth_bronze.units` (
   id_unidade INT64 NOT NULL,
   nome_unidade STRING,
   id_estado INT64,
@@ -64,7 +64,7 @@ OPTIONS(
 );
 
 -- Bronze: States (reference)
-CREATE TABLE IF NOT EXISTS `case_ficticio-data-mvp-arthur.case_ficticio_bronze.states` (
+CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.mrhealth_bronze.states` (
   id_estado INT64 NOT NULL,
   id_pais INT64,
   nome_estado STRING,
@@ -76,7 +76,7 @@ OPTIONS(
 );
 
 -- Bronze: Countries (reference)
-CREATE TABLE IF NOT EXISTS `case_ficticio-data-mvp-arthur.case_ficticio_bronze.countries` (
+CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.mrhealth_bronze.countries` (
   id_pais INT64 NOT NULL,
   nome_pais STRING,
   _ingest_timestamp TIMESTAMP

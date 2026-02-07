@@ -28,22 +28,22 @@ inputs = {
   # ---------------------------------------------------------------------------
   datasets = {
     bronze = {
-      id            = "case_ficticio_bronze"
+      id            = "mrhealth_bronze"
       friendly_name = "MR Health - Bronze Layer"
       description   = "Raw data ingested from CSV files and reference sources"
     }
     silver = {
-      id            = "case_ficticio_silver"
+      id            = "mrhealth_silver"
       friendly_name = "MR Health - Silver Layer"
       description   = "Cleaned, deduplicated, and enriched data"
     }
     gold = {
-      id            = "case_ficticio_gold"
+      id            = "mrhealth_gold"
       friendly_name = "MR Health - Gold Layer"
       description   = "Star schema dimensional model for analytics"
     }
     monitoring = {
-      id            = "case_ficticio_monitoring"
+      id            = "mrhealth_monitoring"
       friendly_name = "MR Health - Monitoring"
       description   = "Pipeline metrics, data quality logs, and free tier usage"
     }

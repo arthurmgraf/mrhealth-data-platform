@@ -33,7 +33,7 @@ data:
                         MAX(order_date),
                         HOUR
                       ) AS hours_since_last_data
-                    FROM `sixth-foundry-485810-e5.mrhealth_gold.fact_sales`
+                    FROM `your-gcp-project-id.mrhealth_gold.fact_sales`
                   format: table
               - refId: B
                 relativeTimeRange:
@@ -93,7 +93,7 @@ data:
                         SUM(total_billable_bytes) / POW(1024, 3),
                         2
                       ) AS storage_gb
-                    FROM `sixth-foundry-485810-e5.mrhealth_gold.INFORMATION_SCHEMA.TABLE_STORAGE`
+                    FROM `your-gcp-project-id.mrhealth_gold.INFORMATION_SCHEMA.TABLE_STORAGE`
                   format: table
               - refId: B
                 relativeTimeRange:

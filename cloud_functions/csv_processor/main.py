@@ -1,6 +1,6 @@
 """
-Case Fictício - Teste -- CSV Processor Cloud Function (2nd Gen)
-=====================================================
+MR. HEALTH Data Platform -- CSV Processor Cloud Function (2nd Gen)
+===================================================================
 
 Triggered by GCS file upload events on raw/csv_sales/ prefix.
 Processes pedido.csv and item_pedido.csv files into BigQuery Bronze layer.
@@ -11,7 +11,7 @@ Event-driven architecture:
 - Loads valid data to BigQuery Bronze (orders, order_items)
 - Quarantines invalid files with error reports
 
-Author: Arthur Graf -- Case Fictício - Teste Project
+Author: Arthur Graf -- MR. HEALTH Data Platform
 Date: January 2026
 """
 
@@ -20,14 +20,14 @@ import pandas as pd
 import io
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from google.cloud import storage, bigquery
 
 
 # Environment configuration (must be set via environment variables or .env)
 PROJECT = os.environ["PROJECT_ID"]
 BUCKET = os.environ["BUCKET_NAME"]
-BQ_DATASET = os.environ.get("BQ_DATASET", "case_ficticio_bronze")
+BQ_DATASET = os.environ.get("BQ_DATASET", "mrhealth_bronze")
 QUARANTINE_PREFIX = "quarantine"
 
 # Expected schemas for validation
@@ -66,7 +66,7 @@ def quarantine_file(bucket_name: str, source_blob: str, error_msg: str) -> None:
     error_report = {
         "source_file": source_blob,
         "error": error_msg,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     error_blob = bucket.blob(quarantine_path.replace(".csv", "_error.json"))
     error_blob.upload_from_string(json.dumps(error_report, indent=2))
@@ -146,8 +146,8 @@ def load_to_bigquery(df: pd.DataFrame, table_name: str, source_file: str) -> int
 
     # Add metadata columns
     df["_source_file"] = source_file
-    df["_ingest_timestamp"] = datetime.utcnow()
-    df["_ingest_date"] = datetime.utcnow().date()
+    df["_ingest_timestamp"] = datetime.now(timezone.utc)
+    df["_ingest_date"] = datetime.now(timezone.utc).date()
 
     # Normalize column names to match BigQuery schema (lowercase with underscores)
     df = df.rename(columns={

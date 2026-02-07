@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -17,7 +18,7 @@ from google.cloud import bigquery
 
 logger = logging.getLogger(__name__)
 
-_PROJECT_ID = "sixth-foundry-485810-e5"
+_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "")
 
 
 def _save_metric(
@@ -31,7 +32,7 @@ def _save_metric(
     task_id: str = "",
 ) -> None:
     client = bigquery.Client(project=project_id)
-    table_id = f"{project_id}.case_ficticio_monitoring.pipeline_metrics"
+    table_id = f"{project_id}.mrhealth_monitoring.pipeline_metrics"
     now = datetime.now(timezone.utc)
     rows = [{
         "metric_id": str(uuid.uuid4())[:12],

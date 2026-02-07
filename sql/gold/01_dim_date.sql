@@ -1,4 +1,4 @@
--- Case Fictício - Teste -- Gold Layer: Date Dimension
+-- MR. HEALTH Data Platform -- Gold Layer: Date Dimension
 -- ===========================================
 --
 -- Generates a date spine from 2025-01-01 to 2027-12-31 (3 years).
@@ -7,10 +7,10 @@
 -- Grain: One row per calendar date
 -- Key: date_key (format: YYYYMMDD as string)
 --
--- Author: Arthur Graf -- Case Fictício - Teste Project
+-- Author: Arthur Graf -- MR. HEALTH Data Platform
 -- Date: January 2026
 
-CREATE OR REPLACE TABLE `sixth-foundry-485810-e5.case_ficticio_gold.dim_date` AS
+CREATE OR REPLACE TABLE `{PROJECT_ID}.mrhealth_gold.dim_date` AS
 SELECT
   -- Primary key (surrogate)
   FORMAT_DATE('%Y%m%d', d) AS date_key,

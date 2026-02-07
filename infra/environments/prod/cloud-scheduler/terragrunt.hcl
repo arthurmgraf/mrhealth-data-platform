@@ -32,9 +32,9 @@ dependency "iam" {
 
   mock_outputs = {
     service_account_emails = {
-      csv_processor  = "csv-processor-sa@sixth-foundry-485810-e5.iam.gserviceaccount.com"
-      data_generator = "data-generator-sa@sixth-foundry-485810-e5.iam.gserviceaccount.com"
-      pg_extractor   = "pg-extractor-sa@sixth-foundry-485810-e5.iam.gserviceaccount.com"
+      csv_processor  = "csv-processor-sa@${include.env.locals.project_id}.iam.gserviceaccount.com"
+      data_generator = "data-generator-sa@${include.env.locals.project_id}.iam.gserviceaccount.com"
+      pg_extractor   = "pg-extractor-sa@${include.env.locals.project_id}.iam.gserviceaccount.com"
     }
   }
 }

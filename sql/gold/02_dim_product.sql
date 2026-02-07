@@ -1,4 +1,4 @@
--- Case Fictício - Teste -- Gold Layer: Product Dimension
+-- MR. HEALTH Data Platform -- Gold Layer: Product Dimension
 -- ==============================================
 --
 -- Product dimension with SCD Type 2 support (slowly changing dimension).
@@ -7,10 +7,10 @@
 -- Grain: One row per product
 -- Key: product_key (same as product_id for now)
 --
--- Author: Arthur Graf -- Case Fictício - Teste Project
+-- Author: Arthur Graf -- MR. HEALTH Data Platform
 -- Date: January 2026
 
-CREATE OR REPLACE TABLE `sixth-foundry-485810-e5.case_ficticio_gold.dim_product` AS
+CREATE OR REPLACE TABLE `{PROJECT_ID}.mrhealth_gold.dim_product` AS
 SELECT
   -- Surrogate key
   product_id AS product_key,
@@ -26,4 +26,4 @@ SELECT
   TIMESTAMP('9999-12-31 23:59:59') AS _valid_to,
   TRUE AS is_current
 
-FROM `sixth-foundry-485810-e5.case_ficticio_silver.products`;
+FROM `{PROJECT_ID}.mrhealth_silver.products`;

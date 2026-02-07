@@ -21,9 +21,9 @@ dependency "iam" {
 
   mock_outputs = {
     service_account_emails = {
-      csv_processor  = "csv-processor-sa@sixth-foundry-485810-e5.iam.gserviceaccount.com"
-      data_generator = "data-generator-sa@sixth-foundry-485810-e5.iam.gserviceaccount.com"
-      pg_extractor   = "pg-extractor-sa@sixth-foundry-485810-e5.iam.gserviceaccount.com"
+      csv_processor  = "csv-processor-sa@${include.env.locals.project_id}.iam.gserviceaccount.com"
+      data_generator = "data-generator-sa@${include.env.locals.project_id}.iam.gserviceaccount.com"
+      pg_extractor   = "pg-extractor-sa@${include.env.locals.project_id}.iam.gserviceaccount.com"
     }
   }
 }
@@ -32,7 +32,7 @@ dependency "gcs" {
   config_path = "../gcs"
 
   mock_outputs = {
-    bucket_name = "mrhealth-datalake-485810"
+    bucket_name = "mrhealth-datalake-${include.env.locals.project_id}"
   }
 }
 
@@ -61,7 +61,7 @@ inputs = {
       environment_variables = {
         GCP_PROJECT_ID  = include.env.locals.project_id
         GCS_BUCKET_NAME = dependency.gcs.outputs.bucket_name
-        BQ_DATASET      = "case_ficticio_bronze"
+        BQ_DATASET      = "mrhealth_bronze"
         ENVIRONMENT     = include.env.locals.environment
       }
 

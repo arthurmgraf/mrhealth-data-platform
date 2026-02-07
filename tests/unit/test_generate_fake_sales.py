@@ -1,16 +1,6 @@
-"""
-Case Fictício - Teste -- Unit Tests for Fake Data Generator
-=================================================
+"""Unit tests for the fake data generator (scripts/generate_fake_sales.py).
 
-Unit tests for scripts/generate_fake_sales.py
 Tests run locally without GCP dependencies.
-
-Usage:
-    pytest tests/unit/test_generate_fake_sales.py -v
-    pytest tests/unit/ -v --cov=scripts --cov-report=term-missing
-
-Author: Arthur Graf -- Case Fictício - Teste Project
-Date: January 2026
 """
 
 import pytest

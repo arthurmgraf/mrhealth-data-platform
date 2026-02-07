@@ -52,7 +52,7 @@ def calculate_storage(**context: Any) -> dict[str, Any]:
     bq_client = bigquery.Client(project=project_id)
     bq_bytes = 0
     for dataset_name in ["mrhealth_bronze", "mrhealth_silver",
-                         "mrhealth_gold", "case_ficticio_monitoring"]:
+                         "mrhealth_gold", "mrhealth_monitoring"]:
         dataset_ref = bq_client.dataset(dataset_name)
         tables = list(bq_client.list_tables(dataset_ref))
         for table_ref in tables:
@@ -181,7 +181,7 @@ def save_usage_report(**context: Any) -> None:
         "details": json.dumps({"source": "data_retention_dag"}),
     }]
 
-    table_id = f"{project_id}.case_ficticio_monitoring.free_tier_usage"
+    table_id = f"{project_id}.mrhealth_monitoring.free_tier_usage"
     errors = client.insert_rows_json(table_id, rows)
     if errors:
         logger.error("Error saving usage report: %s", errors)

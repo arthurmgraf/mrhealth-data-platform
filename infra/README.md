@@ -33,7 +33,7 @@ infra/
 
 | Property | Value |
 |----------|-------|
-| Project ID | `sixth-foundry-485810-e5` |
+| Project ID | `$GCP_PROJECT_ID` (set via environment variable) |
 | Region | `us-central1` |
 | Environment | `prod` (single environment) |
 | Terraform State | `gs://mrhealth-terraform-state` |
@@ -59,7 +59,7 @@ infra/
 3. **gcloud CLI** authenticated with sufficient permissions
 4. **GCS state bucket** must exist:
    ```bash
-   gsutil mb -p sixth-foundry-485810-e5 -l us-central1 gs://mrhealth-terraform-state
+   gsutil mb -p $GCP_PROJECT_ID -l us-central1 gs://mrhealth-terraform-state
    ```
 
 ## Initial Setup (Import Existing Resources)

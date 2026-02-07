@@ -3,7 +3,7 @@ MR. Health Data Quality DAG
 ============================
 
 Executes 6 automated quality checks across all Medallion layers.
-Results are saved to case_ficticio_monitoring.data_quality_log.
+Results are saved to mrhealth_monitoring.data_quality_log.
 
 Schedule: Daily at 03:00 BRT (after daily_pipeline completes at 02:00)
 Tasks:

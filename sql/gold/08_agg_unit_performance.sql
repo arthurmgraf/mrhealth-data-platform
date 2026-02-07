@@ -1,4 +1,4 @@
--- Case Fictício - Teste -- Gold Layer: Unit Performance Aggregation
+-- MR. HEALTH Data Platform -- Gold Layer: Unit Performance Aggregation
 -- =========================================================
 --
 -- Pre-aggregated unit-level KPIs for operations dashboard.
@@ -7,10 +7,10 @@
 -- Grain: One row per unit
 -- Refresh: Daily after Silver/Gold layer updates
 --
--- Author: Arthur Graf -- Case Fictício - Teste Project
+-- Author: Arthur Graf -- MR. HEALTH Data Platform
 -- Date: January 2026
 
-CREATE OR REPLACE TABLE `sixth-foundry-485810-e5.case_ficticio_gold.agg_unit_performance` AS
+CREATE OR REPLACE TABLE `{PROJECT_ID}.mrhealth_gold.agg_unit_performance` AS
 SELECT
   -- Unit dimensions
   u.unit_key,
@@ -51,8 +51,8 @@ SELECT
   RANK() OVER (ORDER BY SUM(f.order_value) DESC) AS revenue_rank,
   RANK() OVER (ORDER BY COUNT(DISTINCT f.order_id) DESC) AS order_volume_rank
 
-FROM `sixth-foundry-485810-e5.case_ficticio_gold.dim_unit` u
-LEFT JOIN `sixth-foundry-485810-e5.case_ficticio_gold.fact_sales` f
+FROM `{PROJECT_ID}.mrhealth_gold.dim_unit` u
+LEFT JOIN `{PROJECT_ID}.mrhealth_gold.fact_sales` f
   ON u.unit_key = f.unit_key
 
 GROUP BY

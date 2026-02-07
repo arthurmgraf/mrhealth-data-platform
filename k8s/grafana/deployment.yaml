@@ -42,7 +42,10 @@ spec:
             - name: GF_SECURITY_ADMIN_USER
               value: "admin"
             - name: GF_SECURITY_ADMIN_PASSWORD
-              value: "GrafanaMrH3alth2026"
+              valueFrom:
+                secretKeyRef:
+                  name: mrhealth-secrets
+                  key: grafana-admin-password
             # --- Anonymous access (portfolio viewing) ---
             - name: GF_AUTH_ANONYMOUS_ENABLED
               value: "true"

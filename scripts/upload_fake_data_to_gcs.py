@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Case Fictício - Teste -- Upload Fake Data to GCS
+MR. HEALTH Data Platform -- Upload Fake Data to GCS
 ======================================
 
 Uploads locally generated fake data to the GCS landing zone.
@@ -8,12 +8,12 @@ This simulates the daily upload process from the 50 units.
 
 Usage:
     python scripts/upload_fake_data_to_gcs.py
-    python scripts/upload_fake_data_to_gcs.py --bucket case_ficticio-datalake-485810 --local-dir output
+    python scripts/upload_fake_data_to_gcs.py --bucket mrhealth-datalake-485810 --local-dir output
 
 Requirements:
     pip install google-cloud-storage pyyaml
 
-Author: Arthur Graf -- Case Fictício - Teste Project
+Author: Arthur Graf -- MR. HEALTH Data Platform Project
 Date: January 2026
 """
 
@@ -109,7 +109,7 @@ def main():
     print(f"Using project: {project_id}")
 
     print("============================================================")
-    print("Case Fictício - Teste -- Upload Fake Data to GCS")
+    print("MR. HEALTH Data Platform -- Upload Fake Data to GCS")
     print("============================================================")
 
     # Verify local directory exists

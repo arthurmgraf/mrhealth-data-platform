@@ -2,7 +2,7 @@
 -- Table: data_quality_log
 -- Stores results from automated quality checks across all Medallion layers.
 
-CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.case_ficticio_monitoring.data_quality_log` (
+CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.mrhealth_monitoring.data_quality_log` (
   check_id STRING NOT NULL,
   check_name STRING NOT NULL,
   check_category STRING NOT NULL,

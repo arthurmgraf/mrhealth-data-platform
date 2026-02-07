@@ -61,11 +61,19 @@ spec:
                 --firstname Admin \
                 --lastname User \
                 --email admin@mrhealth.local \
-                --password admin || true
+                --password "$SUPERSET_ADMIN_PASSWORD" || true
               superset init
           env:
             - name: SUPERSET_SECRET_KEY
-              value: "mrhealth-superset-k8s-key-2026"
+              valueFrom:
+                secretKeyRef:
+                  name: mrhealth-secrets
+                  key: superset-secret-key
+            - name: SUPERSET_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mrhealth-secrets
+                  key: superset-admin-password
             - name: PG_HOST
               value: "postgresql"
             - name: PG_PORT
@@ -100,7 +108,10 @@ spec:
             - containerPort: 8088
           env:
             - name: SUPERSET_SECRET_KEY
-              value: "mrhealth-superset-k8s-key-2026"
+              valueFrom:
+                secretKeyRef:
+                  name: mrhealth-secrets
+                  key: superset-secret-key
             - name: PG_HOST
               value: "postgresql"
             - name: PG_PORT

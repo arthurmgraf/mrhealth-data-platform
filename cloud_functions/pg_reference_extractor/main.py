@@ -23,8 +23,8 @@ from sshtunnel import SSHTunnelForwarder
 
 
 # --- Configuração ---
-PROJECT_ID = os.environ.get("PROJECT_ID", "sixth-foundry-485810-e5")
-BUCKET_NAME = os.environ.get("BUCKET_NAME", "mrhealth-datalake-485810")
+PROJECT_ID = os.environ.get("PROJECT_ID", os.environ.get("GCP_PROJECT_ID", ""))
+BUCKET_NAME = os.environ.get("BUCKET_NAME", os.environ.get("GCS_BUCKET_NAME", ""))
 GCS_PREFIX = os.environ.get("GCS_PREFIX", "raw/reference_data")
 
 TABLES = {

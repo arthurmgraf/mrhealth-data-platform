@@ -1,7 +1,7 @@
--- Case Fictício - Teste -- Silver Layer: Order Items
+-- MR. HEALTH Data Platform -- Silver Layer: Order Items
 -- ==========================================
 --
--- Source: case_ficticio_bronze.order_items
+-- Source: mrhealth_bronze.order_items
 -- Transformations:
 --   - Calculated field: total_item_value = quantity * unit_price
 --   - Type casting (quantity as INT64)
@@ -9,10 +9,10 @@
 --   - Deduplication (latest ingestion per order_item_id)
 --   - Observation field cleaning
 --
--- Author: Arthur Graf -- Case Fictício - Teste Project
+-- Author: Arthur Graf -- MR. HEALTH Data Platform
 -- Date: January 2026
 
-CREATE OR REPLACE TABLE `sixth-foundry-485810-e5.case_ficticio_silver.order_items` AS
+CREATE OR REPLACE TABLE `{PROJECT_ID}.mrhealth_silver.order_items` AS
 SELECT
   -- Primary key
   oi.id_item_pedido AS order_item_id,
@@ -38,10 +38,10 @@ SELECT
   oi._ingest_timestamp,
   oi._ingest_date
 
-FROM `sixth-foundry-485810-e5.case_ficticio_bronze.order_items` oi
+FROM `{PROJECT_ID}.mrhealth_bronze.order_items` oi
 
 -- Referential integrity: only include items that have matching orders
-INNER JOIN `sixth-foundry-485810-e5.case_ficticio_bronze.orders` o
+INNER JOIN `{PROJECT_ID}.mrhealth_bronze.orders` o
   ON oi.id_pedido = o.id_pedido
 
 -- Deduplication: keep latest ingestion per order_item_id

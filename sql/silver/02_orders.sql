@@ -1,7 +1,7 @@
--- Case Fictício - Teste -- Silver Layer: Orders
+-- MR. HEALTH Data Platform -- Silver Layer: Orders
 -- =====================================
 --
--- Source: case_ficticio_bronze.orders
+-- Source: mrhealth_bronze.orders
 -- Transformations:
 --   - Type normalization (ONLINE/PHYSICAL)
 --   - Business rules for delivery addresses
@@ -9,10 +9,10 @@
 --   - Calculated fields (items_subtotal)
 --   - Deduplication (latest ingestion per order_id)
 --
--- Author: Arthur Graf -- Case Fictício - Teste Project
+-- Author: Arthur Graf -- MR. HEALTH Data Platform
 -- Date: January 2026
 
-CREATE OR REPLACE TABLE `sixth-foundry-485810-e5.case_ficticio_silver.orders` AS
+CREATE OR REPLACE TABLE `{PROJECT_ID}.mrhealth_silver.orders` AS
 SELECT
   -- Primary key
   o.id_pedido AS order_id,
@@ -51,7 +51,7 @@ SELECT
   o._ingest_timestamp,
   o._ingest_date
 
-FROM `sixth-foundry-485810-e5.case_ficticio_bronze.orders` o
+FROM `{PROJECT_ID}.mrhealth_bronze.orders` o
 
 -- Deduplication: keep latest ingestion per order_id
 QUALIFY ROW_NUMBER() OVER (

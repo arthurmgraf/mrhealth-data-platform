@@ -1,4 +1,4 @@
--- Case Fictício - Teste -- Gold Layer: Daily Sales Aggregation
+-- MR. HEALTH Data Platform -- Gold Layer: Daily Sales Aggregation
 -- ===================================================
 --
 -- Pre-aggregated daily sales KPIs for dashboard performance.
@@ -7,10 +7,10 @@
 -- Grain: One row per date
 -- Refresh: Daily after Silver/Gold layer updates
 --
--- Author: Arthur Graf -- Case Fictício - Teste Project
+-- Author: Arthur Graf -- MR. HEALTH Data Platform
 -- Date: January 2026
 
-CREATE OR REPLACE TABLE `sixth-foundry-485810-e5.case_ficticio_gold.agg_daily_sales` AS
+CREATE OR REPLACE TABLE `{PROJECT_ID}.mrhealth_gold.agg_daily_sales` AS
 SELECT
   -- Date dimension
   d.date_key,
@@ -57,8 +57,8 @@ SELECT
   ROUND(100.0 * COUNT(DISTINCT CASE WHEN f.order_status = 'Cancelado' THEN f.order_id END) /
     NULLIF(COUNT(DISTINCT f.order_id), 0), 2) AS cancellation_rate
 
-FROM `sixth-foundry-485810-e5.case_ficticio_gold.dim_date` d
-LEFT JOIN `sixth-foundry-485810-e5.case_ficticio_gold.fact_sales` f
+FROM `{PROJECT_ID}.mrhealth_gold.dim_date` d
+LEFT JOIN `{PROJECT_ID}.mrhealth_gold.fact_sales` f
   ON d.date_key = f.date_key
 
 GROUP BY

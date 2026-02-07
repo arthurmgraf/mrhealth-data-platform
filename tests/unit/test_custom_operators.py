@@ -146,7 +146,7 @@ class TestBigQueryFreshnessSensor:
         sensor = BigQueryFreshnessSensor(
             task_id="test_sensor",
             project_id="test-project",
-            dataset="case_ficticio_gold",
+            dataset="mrhealth_gold",
             table="fact_sales",
             target_date="2026-02-05",
         )
@@ -168,7 +168,7 @@ class TestBigQueryFreshnessSensor:
         sensor = BigQueryFreshnessSensor(
             task_id="test_sensor",
             project_id="test-project",
-            dataset="case_ficticio_gold",
+            dataset="mrhealth_gold",
             table="fact_sales",
             target_date="2026-02-05",
         )

@@ -1,0 +1,105 @@
+# NetworkPolicy: Restrict inter-pod communication within mrhealth-db namespace.
+# Only allows traffic between services that need to communicate.
+# Default deny all ingress + egress, then allow specific flows.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mrhealth-default-deny
+  namespace: mrhealth-db
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow Airflow -> PostgreSQL
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-airflow-to-postgres
+  namespace: mrhealth-db
+spec:
+  podSelector:
+    matchLabels:
+      app: postgresql
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: airflow-scheduler
+        - podSelector:
+            matchLabels:
+              app: airflow-webserver
+      ports:
+        - port: 5432
+          protocol: TCP
+---
+# Allow Superset -> PostgreSQL
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-superset-to-postgres
+  namespace: mrhealth-db
+spec:
+  podSelector:
+    matchLabels:
+      app: postgresql
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: superset
+      ports:
+        - port: 5432
+          protocol: TCP
+---
+# Allow external access to web UIs (NodePort services)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-web-ingress
+  namespace: mrhealth-db
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [airflow-webserver, superset, grafana, prometheus]
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - port: 8080
+          protocol: TCP
+        - port: 8088
+          protocol: TCP
+        - port: 3000
+          protocol: TCP
+        - port: 9090
+          protocol: TCP
+---
+# Allow Prometheus -> all pods (metrics scraping)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scrape
+  namespace: mrhealth-db
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - port: 9100
+          protocol: TCP
+        - port: 9125
+          protocol: TCP
+        - port: 9102
+          protocol: TCP

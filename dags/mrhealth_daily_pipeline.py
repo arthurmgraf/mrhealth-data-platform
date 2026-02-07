@@ -136,7 +136,7 @@ def quality_check_silver(**context: Any) -> None:
         "order_items_not_empty": f"SELECT COUNT(*) > 0 FROM `{project_id}.mrhealth_silver.order_items`",
         "no_null_order_ids": (
             f"SELECT COUNT(*) = 0 FROM `{project_id}.mrhealth_silver.orders` "
-            f"WHERE id_pedido IS NULL"
+            f"WHERE order_id IS NULL"
         ),
     }
 
@@ -220,7 +220,7 @@ def notify_pipeline_completion(**context: Any) -> None:
         {"metric_name": "rows_processed", "metric_value": float(total_rows), "metric_unit": "rows"},
     ]
 
-    table_id = f"{project_id}.case_ficticio_monitoring.pipeline_metrics"
+    table_id = f"{project_id}.mrhealth_monitoring.pipeline_metrics"
     for m in metrics:
         rows = [{
             "metric_id": str(uuid.uuid4())[:12],

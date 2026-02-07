@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Case Fictício - Teste -- GCP Infrastructure Setup (Python SDK Alternative)
+MR. HEALTH Data Platform -- GCP Infrastructure Setup (Python SDK Alternative)
 ================================================================
 
 Alternative to gcloud CLI commands. Uses Google Cloud Python SDK to:
@@ -17,7 +17,7 @@ Requirements:
 Note: Service account creation still requires gcloud CLI or Console UI.
       API enablement still requires gcloud CLI or Console UI.
 
-Author: Arthur Graf -- Case Fictício - Teste Project
+Author: Arthur Graf -- MR. HEALTH Data Platform Project
 Date: January 2026
 """
 
@@ -100,10 +100,10 @@ def create_bigquery_datasets():
         bq_client = bigquery.Client(project=PROJECT_ID)
 
         datasets_config = [
-            ("case_ficticio_bronze", "Bronze layer: schema-enforced, deduplicated data", "bronze"),
-            ("case_ficticio_silver", "Silver layer: cleaned, enriched, normalized data", "silver"),
-            ("case_ficticio_gold", "Gold layer: star schema dimensional model", "gold"),
-            ("case_ficticio_monitoring", "Pipeline monitoring: logs and quality checks", "monitoring")
+            ("mrhealth_bronze", "Bronze layer: schema-enforced, deduplicated data", "bronze"),
+            ("mrhealth_silver", "Silver layer: cleaned, enriched, normalized data", "silver"),
+            ("mrhealth_gold", "Gold layer: star schema dimensional model", "gold"),
+            ("mrhealth_monitoring", "Pipeline monitoring: logs and quality checks", "monitoring")
         ]
 
         for dataset_id, description, layer in datasets_config:
@@ -164,7 +164,7 @@ def create_bronze_tables():
 
 def main():
     print("="*60)
-    print("Case Fictício - Teste -- GCP Infrastructure Setup (Python SDK)")
+    print("MR. HEALTH Data Platform -- GCP Infrastructure Setup (Python SDK)")
     print("="*60)
     print(f"Project: {PROJECT_ID}")
     print(f"Bucket:  {BUCKET_NAME}")

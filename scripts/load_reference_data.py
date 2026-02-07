@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Case Fictício - Teste -- Load Reference Data into BigQuery Bronze
+MR. HEALTH Data Platform -- Load Reference Data into BigQuery Bronze
 =======================================================
 
 Loads static reference data (products, units, states, countries) from GCS
@@ -8,12 +8,12 @@ into BigQuery Bronze layer tables.
 
 Usage:
     python scripts/load_reference_data.py
-    python scripts/load_reference_data.py --project sixth-foundry-485810-e5
+    python scripts/load_reference_data.py --project ${PROJECT_ID}
 
 Requirements:
     pip install google-cloud-bigquery pyyaml
 
-Author: Arthur Graf -- Case Fictício - Teste Project
+Author: Arthur Graf -- MR. HEALTH Data Platform Project
 Date: January 2026
 """
 
@@ -42,7 +42,7 @@ TABLE_MAPPING = {
 }
 
 
-def load_reference_tables(project_id, bucket_name, dataset_id="case_ficticio_bronze"):
+def load_reference_tables(project_id, bucket_name, dataset_id="mrhealth_bronze"):
     """Load reference CSVs from GCS into BigQuery Bronze tables."""
     print("\n" + "="*60)
     print("Loading Reference Data into BigQuery Bronze")
@@ -111,7 +111,7 @@ def load_reference_tables(project_id, bucket_name, dataset_id="case_ficticio_bro
     return loaded_count == len(TABLE_MAPPING)
 
 
-def verify_reference_data(project_id, dataset_id="case_ficticio_bronze"):
+def verify_reference_data(project_id, dataset_id="mrhealth_bronze"):
     """Verify reference data row counts in BigQuery."""
     print("\n" + "="*60)
     print("Verification - Reference Data Row Counts")
@@ -166,7 +166,7 @@ def main():
     args = parser.parse_args()
 
     print("="*60)
-    print("Case Fictício - Teste -- Load Reference Data")
+    print("MR. HEALTH Data Platform -- Load Reference Data")
     print("="*60)
     print(f"Project: {args.project}")
     print(f"Bucket:  gs://{args.bucket}/")

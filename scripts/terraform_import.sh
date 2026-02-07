@@ -14,7 +14,7 @@
 
 set -euo pipefail
 
-PROJECT_ID="sixth-foundry-485810-e5"
+PROJECT_ID="${PROJECT_ID}"
 REGION="us-central1"
 
 usage() {
@@ -40,19 +40,19 @@ import_bigquery() {
 
   terragrunt import \
     'module.bigquery.google_bigquery_dataset.datasets["bronze"]' \
-    "projects/${PROJECT_ID}/datasets/case_ficticio_bronze" || true
+    "projects/${PROJECT_ID}/datasets/mrhealth_bronze" || true
 
   terragrunt import \
     'module.bigquery.google_bigquery_dataset.datasets["silver"]' \
-    "projects/${PROJECT_ID}/datasets/case_ficticio_silver" || true
+    "projects/${PROJECT_ID}/datasets/mrhealth_silver" || true
 
   terragrunt import \
     'module.bigquery.google_bigquery_dataset.datasets["gold"]' \
-    "projects/${PROJECT_ID}/datasets/case_ficticio_gold" || true
+    "projects/${PROJECT_ID}/datasets/mrhealth_gold" || true
 
   terragrunt import \
     'module.bigquery.google_bigquery_dataset.datasets["monitoring"]' \
-    "projects/${PROJECT_ID}/datasets/case_ficticio_monitoring" || true
+    "projects/${PROJECT_ID}/datasets/mrhealth_monitoring" || true
 
   echo ""
   echo "=== Importing BigQuery Bronze Tables ==="
@@ -60,7 +60,7 @@ import_bigquery() {
   for table in orders order_items products units states countries; do
     terragrunt import \
       "module.bigquery.google_bigquery_table.bronze_tables[\"${table}\"]" \
-      "projects/${PROJECT_ID}/datasets/case_ficticio_bronze/tables/${table}" || true
+      "projects/${PROJECT_ID}/datasets/mrhealth_bronze/tables/${table}" || true
   done
 
   echo ""
@@ -69,7 +69,7 @@ import_bigquery() {
   for table in data_quality_log pipeline_metrics free_tier_usage; do
     terragrunt import \
       "module.bigquery.google_bigquery_table.monitoring_tables[\"${table}\"]" \
-      "projects/${PROJECT_ID}/datasets/case_ficticio_monitoring/tables/${table}" || true
+      "projects/${PROJECT_ID}/datasets/mrhealth_monitoring/tables/${table}" || true
   done
 
   echo "BigQuery import complete."

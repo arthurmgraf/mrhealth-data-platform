@@ -3,7 +3,7 @@
 ## Overview
 
 This deploys a 2nd generation Cloud Function that:
-- Triggers automatically when CSV files are uploaded to `gs://case_ficticio-datalake-485810/raw/csv_sales/`
+- Triggers automatically when CSV files are uploaded to `gs://${GCS_BUCKET_NAME}/raw/csv_sales/`
 - Validates and processes orders (pedido.csv) and order items (item_pedido.csv)
 - Loads valid data into BigQuery Bronze layer
 - Quarantines invalid files with error reports
@@ -22,10 +22,10 @@ gcloud functions deploy csv-processor `
   --source=. `
   --entry-point=process_csv `
   --trigger-event-filters="type=google.cloud.storage.object.v1.finalized" `
-  --trigger-event-filters="bucket=case_ficticio-datalake-485810" `
+  --trigger-event-filters="bucket=${GCS_BUCKET_NAME}" `
   --memory=256MB `
   --timeout=300s `
-  --set-env-vars="PROJECT_ID=sixth-foundry-485810-e5,BUCKET_NAME=case_ficticio-datalake-485810,BQ_DATASET=case_ficticio_bronze" `
+  --set-env-vars="PROJECT_ID=${PROJECT_ID},BUCKET_NAME=${GCS_BUCKET_NAME},BQ_DATASET=mrhealth_bronze" `
   --allow-unauthenticated
 ```
 
@@ -33,8 +33,8 @@ gcloud functions deploy csv-processor `
 ```
 Deploying function...
 ✓ Function deployed successfully
-  URL: https://us-central1-sixth-foundry-485810-e5.cloudfunctions.net/csv-processor
-  Trigger: google.cloud.storage.object.v1.finalized (bucket: case_ficticio-datalake-485810)
+  URL: https://us-central1-${PROJECT_ID}.cloudfunctions.net/csv-processor
+  Trigger: google.cloud.storage.object.v1.finalized (bucket: ${GCS_BUCKET_NAME})
 ```
 
 ---
@@ -46,11 +46,11 @@ Deploying function...
 ```powershell
 # Upload pedido.csv to trigger the function
 gsutil cp ../../output/csv_sales/2026/01/28/unit_001/pedido.csv `
-  gs://case_ficticio-datalake-485810/raw/csv_sales/test/pedido.csv
+  gs://${GCS_BUCKET_NAME}/raw/csv_sales/test/pedido.csv
 
 # Upload item_pedido.csv to trigger the function
 gsutil cp ../../output/csv_sales/2026/01/28/unit_001/item_pedido.csv `
-  gs://case_ficticio-datalake-485810/raw/csv_sales/test/item_pedido.csv
+  gs://${GCS_BUCKET_NAME}/raw/csv_sales/test/item_pedido.csv
 ```
 
 ### Step 2: Check function execution logs
@@ -61,9 +61,9 @@ gcloud functions logs read csv-processor --gen2 --region=us-central1 --limit=20
 
 **Expected log output:**
 ```
-Processing: gs://case_ficticio-datalake-485810/raw/csv_sales/test/pedido.csv
+Processing: gs://${GCS_BUCKET_NAME}/raw/csv_sales/test/pedido.csv
   Read 54 rows from pedido.csv
-  [OK] Loaded 54 rows into case_ficticio_bronze.orders
+  [OK] Loaded 54 rows into mrhealth_bronze.orders
 ```
 
 ### Step 3: Verify data in BigQuery
@@ -71,15 +71,15 @@ Processing: gs://case_ficticio-datalake-485810/raw/csv_sales/test/pedido.csv
 ```powershell
 # Check orders table
 bq query --use_legacy_sql=false `
-  "SELECT COUNT(*) as row_count FROM ``sixth-foundry-485810-e5.case_ficticio_bronze.orders``"
+  "SELECT COUNT(*) as row_count FROM ``${PROJECT_ID}.mrhealth_bronze.orders``"
 
 # Check order_items table
 bq query --use_legacy_sql=false `
-  "SELECT COUNT(*) as row_count FROM ``sixth-foundry-485810-e5.case_ficticio_bronze.order_items``"
+  "SELECT COUNT(*) as row_count FROM ``${PROJECT_ID}.mrhealth_bronze.order_items``"
 
 # View sample data
 bq query --use_legacy_sql=false --max_rows=5 `
-  "SELECT * FROM ``sixth-foundry-485810-e5.case_ficticio_bronze.orders`` ORDER BY _ingest_timestamp DESC LIMIT 5"
+  "SELECT * FROM ``${PROJECT_ID}.mrhealth_bronze.orders`` ORDER BY _ingest_timestamp DESC LIMIT 5"
 ```
 
 ---
@@ -90,7 +90,7 @@ Once the function is deployed and tested, trigger ingestion of all previously up
 
 ```powershell
 # List all CSV files currently in GCS
-gsutil ls -r gs://case_ficticio-datalake-485810/raw/csv_sales/**/*.csv
+gsutil ls -r gs://${GCS_BUCKET_NAME}/raw/csv_sales/**/*.csv
 
 # The function will trigger automatically for new uploads
 # To process existing files, you need to either:
@@ -114,7 +114,7 @@ gcloud functions describe csv-processor --gen2 --region=us-central1
 
 ### Check quarantined files:
 ```powershell
-gsutil ls gs://case_ficticio-datalake-485810/quarantine/
+gsutil ls gs://${GCS_BUCKET_NAME}/quarantine/
 ```
 
 ---
@@ -131,7 +131,7 @@ gsutil ls gs://case_ficticio-datalake-485810/quarantine/
 ## Troubleshooting
 
 ### Issue: Function not triggering
-- Check that bucket name matches exactly: `case_ficticio-datalake-485810`
+- Check that bucket name matches exactly: `${GCS_BUCKET_NAME}`
 - Verify files are uploaded to `raw/csv_sales/` prefix
 - Check Eventarc logs: `gcloud eventarc triggers list --location=us-central1`
 

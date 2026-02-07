@@ -37,7 +37,7 @@ data:
     DO $$
     BEGIN
         IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'mrh_extractor') THEN
-            CREATE ROLE mrh_extractor WITH LOGIN PASSWORD 'CHANGE_ME_extractor_readonly_2026';
+            CREATE ROLE mrh_extractor WITH LOGIN PASSWORD 'REPLACE_WITH_SECURE_PASSWORD';
         END IF;
     END
     $$;

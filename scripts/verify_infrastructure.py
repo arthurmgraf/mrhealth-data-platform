@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Case Fictício - Teste -- Infrastructure Verification Script
+MR. HEALTH Data Platform -- Infrastructure Verification Script
 ================================================
 
 Verifies that all Phase 1 infrastructure is correctly set up:
@@ -11,12 +11,12 @@ Verifies that all Phase 1 infrastructure is correctly set up:
 
 Usage:
     python scripts/verify_infrastructure.py
-    python scripts/verify_infrastructure.py --project case_ficticio-data-mvp-arthur
+    python scripts/verify_infrastructure.py --project ${GCP_PROJECT_ID}
 
 Requirements:
     pip install google-cloud-storage google-cloud-bigquery
 
-Author: Arthur Graf -- Case Fictício - Teste Project
+Author: Arthur Graf -- MR. HEALTH Data Platform Project
 Date: January 2026
 """
 
@@ -77,10 +77,10 @@ def check_bigquery_datasets(project_id):
         bq_client = bigquery.Client(project=project_id)
 
         expected_datasets = [
-            "case_ficticio_bronze",
-            "case_ficticio_silver",
-            "case_ficticio_gold",
-            "case_ficticio_monitoring"
+            "mrhealth_bronze",
+            "mrhealth_silver",
+            "mrhealth_gold",
+            "mrhealth_monitoring"
         ]
 
         datasets = list(bq_client.list_datasets())
@@ -112,12 +112,12 @@ def check_bigquery_tables(project_id):
         bq_client = bigquery.Client(project=project_id)
 
         expected_tables = [
-            "case_ficticio_bronze.orders",
-            "case_ficticio_bronze.order_items",
-            "case_ficticio_bronze.products",
-            "case_ficticio_bronze.units",
-            "case_ficticio_bronze.states",
-            "case_ficticio_bronze.countries"
+            "mrhealth_bronze.orders",
+            "mrhealth_bronze.order_items",
+            "mrhealth_bronze.products",
+            "mrhealth_bronze.units",
+            "mrhealth_bronze.states",
+            "mrhealth_bronze.countries"
         ]
 
         all_exist = True
@@ -143,9 +143,9 @@ def check_service_accounts(project_id):
     print("  [INFO] Run this command to verify:")
     print(f"     gcloud iam service-accounts list --project={project_id}")
     print("\n  Expected service accounts:")
-    print("     [OK] sa-case_ficticio-ingestion")
-    print("     [OK] sa-case_ficticio-transform")
-    print("     [OK] sa-case_ficticio-monitoring")
+    print("     [OK] sa-mrhealth-ingestion")
+    print("     [OK] sa-mrhealth-transform")
+    print("     [OK] sa-mrhealth-monitoring")
 
     # Note: Checking SA requires additional permissions, so we just guide the user
     return True
@@ -177,7 +177,7 @@ def main():
             sys.exit(1)
 
     parser = argparse.ArgumentParser(
-        description="Verify Case Fictício - Teste infrastructure setup"
+        description="Verify MR. HEALTH Data Platform infrastructure setup"
     )
     parser.add_argument(
         "--project",
@@ -193,7 +193,7 @@ def main():
     args = parser.parse_args()
 
     print("============================================================")
-    print("Case Fictício - Teste -- Infrastructure Verification")
+    print("MR. HEALTH Data Platform -- Infrastructure Verification")
     print("============================================================")
     print(f"Project: {args.project}")
     print(f"Bucket:  {args.bucket}")

@@ -91,7 +91,7 @@ class BigQueryDataQualityOperator(BaseOperator):
         duration: float,
         context: dict[str, Any],
     ) -> None:
-        table_id = f"{self.project_id}.case_ficticio_monitoring.data_quality_log"
+        table_id = f"{self.project_id}.mrhealth_monitoring.data_quality_log"
         rows = [{
             "check_id": str(uuid.uuid4())[:12],
             "check_name": self.check_name,

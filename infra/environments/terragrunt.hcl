@@ -3,6 +3,10 @@
 # Shared configuration inherited by all environments
 ###############################################################################
 
+locals {
+  project_id = get_env("GCP_PROJECT_ID")
+}
+
 # ---------------------------------------------------------------------------
 # Remote State: GCS Backend
 # ---------------------------------------------------------------------------
@@ -11,7 +15,7 @@ remote_state {
   config = {
     bucket   = "mrhealth-terraform-state"
     prefix   = "${path_relative_to_include()}/terraform.tfstate"
-    project  = "sixth-foundry-485810-e5"
+    project  = local.project_id
     location = "us-central1"
   }
   generate = {

@@ -5,7 +5,7 @@ Cria os secrets necessários no GCP Secret Manager para a Cloud Function
 pg-reference-extractor acessar o PostgreSQL no K3s via SSH tunnel.
 
 Uso:
-    python scripts/setup_pg_secrets.py --project sixth-foundry-485810-e5
+    python scripts/setup_pg_secrets.py --project $GCP_PROJECT_ID
 
 Secrets criados:
     - pg-host:            IP do servidor K3s

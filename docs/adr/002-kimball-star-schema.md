@@ -18,7 +18,7 @@ The Gold layer needs a dimensional model for analytics.
 We chose **Kimball Star Schema** because:
 
 1. **Query performance**: BigQuery excels with denormalized star schemas
-2. **BI tool compatibility**: Superset and Looker Studio work best with star schemas
+2. **BI tool compatibility**: Apache Superset works best with star schemas
 3. **Team familiarity**: Industry standard for data engineering
 4. **Complexity match**: 4 dimensions + 2 facts + 3 aggregations is manageable
 5. **SCD readiness**: Type 2 scaffolding on dim_product for future support

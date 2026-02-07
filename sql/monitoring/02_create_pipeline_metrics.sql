@@ -2,7 +2,7 @@
 -- Table: pipeline_metrics
 -- Stores pipeline execution metrics (duration, rows processed, failures, SLA misses).
 
-CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.case_ficticio_monitoring.pipeline_metrics` (
+CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.mrhealth_monitoring.pipeline_metrics` (
   metric_id STRING NOT NULL,
   dag_id STRING NOT NULL,
   dag_run_id STRING,

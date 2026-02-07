@@ -2,7 +2,7 @@
 -- Table: free_tier_usage
 -- Weekly snapshots of GCP Free Tier consumption (GCS storage, BQ storage, BQ queries).
 
-CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.case_ficticio_monitoring.free_tier_usage` (
+CREATE TABLE IF NOT EXISTS `{PROJECT_ID}.mrhealth_monitoring.free_tier_usage` (
   snapshot_id STRING NOT NULL,
   snapshot_date DATE NOT NULL,
   snapshot_timestamp TIMESTAMP NOT NULL,

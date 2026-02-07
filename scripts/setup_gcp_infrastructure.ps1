@@ -1,9 +1,9 @@
-# Case Fictício - Teste -- GCP Infrastructure Setup Script
+# MR. HEALTH Data Platform -- GCP Infrastructure Setup Script
 # Executes TASK_002, TASK_003, TASK_004, TASK_006
-# Project: case_ficticio-data-mvp-arthur
+# Project: ${GCP_PROJECT_ID}
 
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "Case Fictício - Teste -- GCP Infrastructure Setup" -ForegroundColor Cyan
+Write-Host "MR. HEALTH Data Platform -- GCP Infrastructure Setup" -ForegroundColor Cyan
 Write-Host "Project: $PROJECT_ID" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host ""
@@ -106,7 +106,7 @@ bq mk `
   --description="Bronze layer: schema-enforced, deduplicated data from CSV and reference sources" `
   --label environment:mvp `
   --label layer:bronze `
-  case_ficticio_bronze
+  mrhealth_bronze
 
 bq mk `
   --project_id=$PROJECT_ID `
@@ -115,7 +115,7 @@ bq mk `
   --description="Silver layer: cleaned, enriched, and normalized data with business rules applied" `
   --label environment:mvp `
   --label layer:silver `
-  case_ficticio_silver
+  mrhealth_silver
 
 bq mk `
   --project_id=$PROJECT_ID `
@@ -124,7 +124,7 @@ bq mk `
   --description="Gold layer: star schema dimensional model, KPIs, and aggregations" `
   --label environment:mvp `
   --label layer:gold `
-  case_ficticio_gold
+  mrhealth_gold
 
 bq mk `
   --project_id=$PROJECT_ID `
@@ -133,7 +133,7 @@ bq mk `
   --description="Pipeline monitoring: ingestion logs, quality checks, processing metadata" `
   --label environment:mvp `
   --label layer:monitoring `
-  case_ficticio_monitoring
+  mrhealth_monitoring
 
 Write-Host ""
 Write-Host "[OK] Datasets created successfully" -ForegroundColor Green
@@ -156,17 +156,17 @@ Write-Host "TASK_006: Create Service Accounts" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 
 # Create service accounts
-gcloud iam service-accounts create sa-case_ficticio-ingestion `
+gcloud iam service-accounts create sa-mrhealth-ingestion `
   --project=$PROJECT_ID `
   --display-name="MR Health Ingestion Pipeline" `
   --description="Service account for Cloud Functions that process CSV files"
 
-gcloud iam service-accounts create sa-case_ficticio-transform `
+gcloud iam service-accounts create sa-mrhealth-transform `
   --project=$PROJECT_ID `
   --display-name="MR Health Transformation Layer" `
   --description="Service account for BigQuery scheduled queries and transformations"
 
-gcloud iam service-accounts create sa-case_ficticio-monitoring `
+gcloud iam service-accounts create sa-mrhealth-monitoring `
   --project=$PROJECT_ID `
   --display-name="MR Health Monitoring" `
   --description="Service account for pipeline monitoring and alerting"
@@ -177,9 +177,9 @@ Write-Host "[OK] Service accounts created" -ForegroundColor Green
 # Assign IAM roles
 Write-Host "[INFO] Assigning IAM roles..." -ForegroundColor Yellow
 
-$SA_INGESTION = "sa-case_ficticio-ingestion@$PROJECT_ID.iam.gserviceaccount.com"
-$SA_TRANSFORM = "sa-case_ficticio-transform@$PROJECT_ID.iam.gserviceaccount.com"
-$SA_MONITORING = "sa-case_ficticio-monitoring@$PROJECT_ID.iam.gserviceaccount.com"
+$SA_INGESTION = "sa-mrhealth-ingestion@$PROJECT_ID.iam.gserviceaccount.com"
+$SA_TRANSFORM = "sa-mrhealth-transform@$PROJECT_ID.iam.gserviceaccount.com"
+$SA_MONITORING = "sa-mrhealth-monitoring@$PROJECT_ID.iam.gserviceaccount.com"
 
 # Ingestion SA roles
 gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SA_INGESTION" --role="roles/storage.objectViewer" --quiet

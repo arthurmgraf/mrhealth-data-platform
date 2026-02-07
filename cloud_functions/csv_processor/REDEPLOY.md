@@ -18,10 +18,10 @@ gcloud functions deploy csv-processor `
   --source=. `
   --entry-point=process_csv `
   --trigger-event-filters="type=google.cloud.storage.object.v1.finalized" `
-  --trigger-event-filters="bucket=case_ficticio-datalake-485810" `
+  --trigger-event-filters="bucket=mrhealth-datalake-485810" `
   --memory=256MB `
   --timeout=300s `
-  --set-env-vars="PROJECT_ID=sixth-foundry-485810-e5,BUCKET_NAME=case_ficticio-datalake-485810,BQ_DATASET=case_ficticio_bronze" `
+  --set-env-vars="PROJECT_ID=${PROJECT_ID},BUCKET_NAME=mrhealth-datalake-485810,BQ_DATASET=mrhealth_bronze" `
   --allow-unauthenticated
 ```
 
@@ -34,7 +34,7 @@ gcloud functions deploy csv-processor `
 ### 1. Upload a test file to trigger the function:
 ```powershell
 gsutil cp ../../output/csv_sales/2026/01/28/unit_001/pedido.csv `
-  gs://case_ficticio-datalake-485810/raw/csv_sales/test/pedido.csv
+  gs://mrhealth-datalake-485810/raw/csv_sales/test/pedido.csv
 ```
 
 ### 2. Check function logs for success:
@@ -44,16 +44,16 @@ gcloud functions logs read csv-processor --gen2 --region=us-central1 --limit=20
 
 **Expected output:**
 ```
-Processing: gs://case_ficticio-datalake-485810/raw/csv_sales/test/pedido.csv
+Processing: gs://mrhealth-datalake-485810/raw/csv_sales/test/pedido.csv
   Read 54 rows from pedido.csv
-  [OK] Loaded 54 rows into case_ficticio_bronze.orders
+  [OK] Loaded 54 rows into mrhealth_bronze.orders
 ```
 
 ### 3. Verify data in BigQuery Bronze:
 ```powershell
 bq query "SELECT COUNT(*) as row_count,
           ROUND(SUM(vlr_pedido), 2) as total_value
-          FROM ``sixth-foundry-485810-e5.case_ficticio_bronze.orders``"
+          FROM ``${PROJECT_ID}.mrhealth_bronze.orders``"
 ```
 
 ### 4. Rebuild Silver and Gold layers:
@@ -68,8 +68,8 @@ bq query "SELECT
   d.year_month,
   COUNT(*) as total_orders,
   ROUND(SUM(f.order_value), 2) as total_revenue
-FROM ``sixth-foundry-485810-e5.case_ficticio_gold.fact_sales`` f
-JOIN ``sixth-foundry-485810-e5.case_ficticio_gold.dim_date`` d ON f.date_key = d.date_key
+FROM ``${PROJECT_ID}.mrhealth_gold.fact_sales`` f
+JOIN ``${PROJECT_ID}.mrhealth_gold.dim_date`` d ON f.date_key = d.date_key
 GROUP BY d.year_month
 ORDER BY d.year_month"
 ```
@@ -104,14 +104,14 @@ Once the test file loads successfully:
 Get-ChildItem -Path "output\csv_sales" -Recurse -Filter "pedido.csv" | ForEach-Object {
     $relativePath = $_.FullName.Substring((Get-Location).Path.Length + 1)
     $gcsPath = $relativePath -replace '\\', '/'
-    gsutil cp $_.FullName "gs://case_ficticio-datalake-485810/raw/csv_sales/$gcsPath"
+    gsutil cp $_.FullName "gs://mrhealth-datalake-485810/raw/csv_sales/$gcsPath"
 }
 
 # Upload all item_pedido.csv files
 Get-ChildItem -Path "output\csv_sales" -Recurse -Filter "item_pedido.csv" | ForEach-Object {
     $relativePath = $_.FullName.Substring((Get-Location).Path.Length + 1)
     $gcsPath = $relativePath -replace '\\', '/'
-    gsutil cp $_.FullName "gs://case_ficticio-datalake-485810/raw/csv_sales/$gcsPath"
+    gsutil cp $_.FullName "gs://mrhealth-datalake-485810/raw/csv_sales/$gcsPath"
 }
 ```
 
@@ -131,9 +131,9 @@ py scripts/build_gold_layer.py
 ```powershell
 # Check row counts across all layers
 bq query "
-SELECT 'bronze_orders' as layer, COUNT(*) as rows FROM ``sixth-foundry-485810-e5.case_ficticio_bronze.orders``
-UNION ALL SELECT 'silver_orders', COUNT(*) FROM ``sixth-foundry-485810-e5.case_ficticio_silver.orders``
-UNION ALL SELECT 'gold_fact_sales', COUNT(*) FROM ``sixth-foundry-485810-e5.case_ficticio_gold.fact_sales``
+SELECT 'bronze_orders' as layer, COUNT(*) as rows FROM ``${PROJECT_ID}.mrhealth_bronze.orders``
+UNION ALL SELECT 'silver_orders', COUNT(*) FROM ``${PROJECT_ID}.mrhealth_silver.orders``
+UNION ALL SELECT 'gold_fact_sales', COUNT(*) FROM ``${PROJECT_ID}.mrhealth_gold.fact_sales``
 "
 ```
 

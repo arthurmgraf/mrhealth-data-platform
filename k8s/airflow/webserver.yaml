@@ -30,11 +30,17 @@ spec:
               airflow db migrate
               airflow users create \
                 --username admin \
-                --password admin \
+                --password "$AIRFLOW_ADMIN_PASSWORD" \
                 --firstname Admin \
                 --lastname User \
                 --role Admin \
                 --email admin@mrhealth.local || true
+          env:
+            - name: AIRFLOW_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mrhealth-secrets
+                  key: airflow-admin-password
           envFrom:
             - configMapRef:
                 name: airflow-config

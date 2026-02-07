@@ -8,7 +8,7 @@
 
 set -euo pipefail
 
-PROJECT_ID="${GCP_PROJECT_ID:-sixth-foundry-485810-e5}"
+PROJECT_ID="${GCP_PROJECT_ID:?ERROR: GCP_PROJECT_ID environment variable is required}"
 SA_NAME="pg-extractor-sa"
 SA_EMAIL="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 

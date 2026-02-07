@@ -21,8 +21,8 @@ dependency "iam" {
 
   mock_outputs = {
     service_account_emails = {
-      pg_extractor = "pg-extractor-sa@sixth-foundry-485810-e5.iam.gserviceaccount.com"
-      airflow      = "airflow-sa@sixth-foundry-485810-e5.iam.gserviceaccount.com"
+      pg_extractor = "pg-extractor-sa@${include.env.locals.project_id}.iam.gserviceaccount.com"
+      airflow      = "airflow-sa@${include.env.locals.project_id}.iam.gserviceaccount.com"
     }
   }
 }

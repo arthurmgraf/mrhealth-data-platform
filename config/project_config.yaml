@@ -1,4 +1,4 @@
-# Case Fictício - Teste Data Platform MVP -- Project Configuration
+# MR. HEALTH Data Platform -- Project Configuration
 
 project:
   id: ${GCP_PROJECT_ID}  # Set in .env file
@@ -20,7 +20,7 @@ bigquery:
     bronze: mrhealth_bronze
     silver: mrhealth_silver
     gold: mrhealth_gold
-    monitoring: case_ficticio_monitoring
+    monitoring: mrhealth_monitoring
 
 postgresql:
   host: ${PG_HOST}
@@ -78,7 +78,7 @@ free_tier_limits:
   scheduler_jobs: 3
 
 monitoring:
-  dataset: case_ficticio_monitoring
+  dataset: mrhealth_monitoring
   tables:
     quality_log: data_quality_log
     pipeline_metrics: pipeline_metrics

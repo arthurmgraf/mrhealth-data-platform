@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Case Fictício - Teste -- Phase 1 Infrastructure Deployment
+MR. HEALTH Data Platform -- Phase 1 Infrastructure Deployment
 ================================================
 
 Creates BigQuery datasets and tables using Python SDK.
@@ -15,7 +15,7 @@ Requirements:
 Prerequisites:
     gcloud auth application-default login
 
-Author: Arthur Graf -- Case Fictício - Teste Project
+Author: Arthur Graf -- MR. HEALTH Data Platform Project
 Date: January 2026
 """
 
@@ -44,10 +44,10 @@ def create_bigquery_datasets(project_id, location="US"):
         client = bigquery.Client(project=project_id)
 
         datasets_config = [
-            ("case_ficticio_bronze", "Bronze layer: schema-enforced, deduplicated data", "bronze"),
-            ("case_ficticio_silver", "Silver layer: cleaned, enriched, normalized data", "silver"),
-            ("case_ficticio_gold", "Gold layer: star schema dimensional model", "gold"),
-            ("case_ficticio_monitoring", "Pipeline monitoring: logs and quality checks", "monitoring")
+            ("mrhealth_bronze", "Bronze layer: schema-enforced, deduplicated data", "bronze"),
+            ("mrhealth_silver", "Silver layer: cleaned, enriched, normalized data", "silver"),
+            ("mrhealth_gold", "Gold layer: star schema dimensional model", "gold"),
+            ("mrhealth_monitoring", "Pipeline monitoring: logs and quality checks", "monitoring")
         ]
 
         created_count = 0
@@ -137,7 +137,7 @@ def create_bronze_tables(project_id):
 
         created_count = 0
         for table_name, schema in tables.items():
-            table_ref = f"{project_id}.case_ficticio_bronze.{table_name}"
+            table_ref = f"{project_id}.mrhealth_bronze.{table_name}"
             table = bigquery.Table(table_ref, schema=schema)
 
             # Partition by _ingest_date for orders and order_items
@@ -167,7 +167,7 @@ def create_bronze_tables(project_id):
 
 def main():
     print("="*60)
-    print("Case Fictício - Teste -- Phase 1 Infrastructure Deployment")
+    print("MR. HEALTH Data Platform -- Phase 1 Infrastructure Deployment")
     print("="*60)
 
     # Load configuration

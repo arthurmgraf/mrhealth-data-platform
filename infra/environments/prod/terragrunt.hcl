@@ -1,11 +1,11 @@
 ###############################################################################
 # MR. HEALTH Data Platform - Prod Environment Configuration
-# Project: sixth-foundry-485810-e5
+# Project ID is read from the GCP_PROJECT_ID environment variable
 ###############################################################################
 
 locals {
   environment = "prod"
-  project_id  = "sixth-foundry-485810-e5"
+  project_id  = get_env("GCP_PROJECT_ID")
   region      = "us-central1"
 
   common_labels = {

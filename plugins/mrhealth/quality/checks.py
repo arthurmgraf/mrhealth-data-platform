@@ -5,7 +5,7 @@ Custom SQL-based quality checks for the Medallion pipeline.
 Each check returns a DataQualityResult saved to BigQuery monitoring.
 
 Usage:
-    checker = DataQualityChecker(project_id="sixth-foundry-485810-e5")
+    checker = DataQualityChecker(project_id="your-project-id")
     results = checker.run_all_checks()
     checker.save_results(dag_run_id="manual__2026-02-05")
 """
@@ -51,7 +51,7 @@ class DataQualityResult:
 class DataQualityChecker:
     """Executa e registra checks de qualidade no BigQuery."""
 
-    MONITORING_DATASET = "case_ficticio_monitoring"
+    MONITORING_DATASET = "mrhealth_monitoring"
     QUALITY_TABLE = "data_quality_log"
 
     def __init__(

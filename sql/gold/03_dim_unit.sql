@@ -1,4 +1,4 @@
--- Case Fictício - Teste -- Gold Layer: Unit Dimension
+-- MR. HEALTH Data Platform -- Gold Layer: Unit Dimension
 -- ===========================================
 --
 -- Unit (store location) dimension denormalized with geography hierarchy.
@@ -7,10 +7,10 @@
 -- Grain: One row per unit
 -- Key: unit_key (same as unit_id)
 --
--- Author: Arthur Graf -- Case Fictício - Teste Project
+-- Author: Arthur Graf -- MR. HEALTH Data Platform
 -- Date: January 2026
 
-CREATE OR REPLACE TABLE `sixth-foundry-485810-e5.case_ficticio_gold.dim_unit` AS
+CREATE OR REPLACE TABLE `{PROJECT_ID}.mrhealth_gold.dim_unit` AS
 SELECT
   -- Surrogate key
   unit_id AS unit_key,
@@ -32,4 +32,4 @@ SELECT
   TIMESTAMP('9999-12-31 23:59:59') AS _valid_to,
   TRUE AS is_current
 
-FROM `sixth-foundry-485810-e5.case_ficticio_silver.units`;
+FROM `{PROJECT_ID}.mrhealth_silver.units`;

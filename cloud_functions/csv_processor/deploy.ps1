@@ -1,4 +1,4 @@
-# Case Fictício - Teste -- Deploy CSV Processor Cloud Function
+# MR. HEALTH Data Platform -- Deploy CSV Processor Cloud Function
 # ==================================================
 #
 # Deploys a 2nd gen Cloud Function that triggers on GCS file uploads
@@ -32,7 +32,7 @@ if (Test-Path $configPath) {
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "Case Fictício - Teste -- Deploy CSV Processor Cloud Function" -ForegroundColor Cyan
+Write-Host "MR. HEALTH Data Platform -- Deploy CSV Processor Cloud Function" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host "Project:  $PROJECT_ID"
 Write-Host "Region:   $REGION"
@@ -67,7 +67,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "  2. Check function logs:"
     Write-Host "     gcloud functions logs read csv-processor --gen2 --region=$REGION --limit=20"
     Write-Host "  3. Verify data in BigQuery:"
-    Write-Host "     bq query 'SELECT COUNT(*) FROM ``$PROJECT_ID.case_ficticio_bronze.orders``'"
+    Write-Host "     bq query 'SELECT COUNT(*) FROM ``$PROJECT_ID.mrhealth_bronze.orders``'"
 } else {
     Write-Host ""
     Write-Host "[ERROR] Deployment failed!" -ForegroundColor Red
