@@ -47,27 +47,57 @@ def load_css(path: Path) -> str:
 
 
 def get_session(base_url: str, username: str, password: str) -> requests.Session:
-    session = requests.Session()
-    session.headers.update({"Content-Type": "application/json"})
+    """
+    Authenticate with Superset using session-based login (cookie auth).
 
-    login_resp = session.post(
-        f"{base_url}/api/v1/security/login",
-        json={"username": username, "password": password, "provider": "db"},
-        timeout=30,
-    )
-    if login_resp.status_code != 200:
-        print(f"  [ERROR] Login failed ({login_resp.status_code}): {login_resp.text[:200]}")
+    Note: JWT auth doesn't properly set g.user in Superset 4.x, which causes
+    the database filter to return empty results. Session-based login works correctly.
+    """
+    import re
+
+    session = requests.Session()
+
+    # Step 1: Get login page and extract CSRF token
+    login_page = session.get(f"{base_url}/login/", timeout=30)
+    if login_page.status_code != 200:
+        print(f"  [ERROR] Could not access login page ({login_page.status_code})")
         sys.exit(1)
 
-    access_token = login_resp.json()["access_token"]
-    session.headers.update({"Authorization": f"Bearer {access_token}"})
+    csrf_match = re.search(r'name="csrf_token"[^>]*value="([^"]+)"', login_page.text)
+    csrf_token = csrf_match.group(1) if csrf_match else ""
 
+    if not csrf_token:
+        print("  [WARN] Could not find CSRF token in login page, trying without it")
+
+    # Step 2: Submit login form with CSRF token
+    login_resp = session.post(
+        f"{base_url}/login/",
+        data={
+            "username": username,
+            "password": password,
+            "csrf_token": csrf_token,
+        },
+        allow_redirects=True,
+        timeout=30,
+    )
+
+    # Check if login was successful (should redirect to /superset/welcome/)
+    if login_resp.status_code != 200 or "/login" in login_resp.url:
+        print(f"  [ERROR] Login failed. Final URL: {login_resp.url}")
+        sys.exit(1)
+
+    # Step 3: Get fresh CSRF token for API calls
     csrf_resp = session.get(f"{base_url}/api/v1/security/csrf_token/", timeout=10)
     if csrf_resp.status_code == 200:
-        csrf_token = csrf_resp.json()["result"]
-        session.headers.update({"X-CSRFToken": csrf_token})
+        api_csrf = csrf_resp.json().get("result", "")
+        session.headers.update({"X-CSRFToken": api_csrf})
 
-    session.headers.update({"Referer": base_url})
+    # Set headers for JSON API calls
+    session.headers.update({
+        "Content-Type": "application/json",
+        "Referer": base_url,
+    })
+
     return session
 
 

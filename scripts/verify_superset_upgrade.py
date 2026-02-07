@@ -91,26 +91,45 @@ class SupersetVerifier:
         self.report = VerificationReport()
 
     def authenticate(self) -> bool:
-        """Login to Superset and get access token."""
+        """Login to Superset using session-based auth (cookie login)."""
+        import re
+
         try:
-            resp = self.session.post(
-                f"{self.base_url}/api/v1/security/login",
-                json={"username": self.username, "password": self.password, "provider": "db"},
-                timeout=30,
-            )
-            if resp.status_code != 200:
+            # Step 1: Get login page and extract CSRF token
+            login_page = self.session.get(f"{self.base_url}/login/", timeout=30)
+            if login_page.status_code != 200:
+                print(f"  [ERROR] Could not access login page ({login_page.status_code})")
                 return False
 
-            token = resp.json().get("access_token")
-            self.session.headers.update({"Authorization": f"Bearer {token}"})
+            csrf_match = re.search(r'name="csrf_token"[^>]*value="([^"]+)"', login_page.text)
+            csrf_token = csrf_match.group(1) if csrf_match else ""
 
+            # Step 2: Submit login form
+            login_resp = self.session.post(
+                f"{self.base_url}/login/",
+                data={
+                    "username": self.username,
+                    "password": self.password,
+                    "csrf_token": csrf_token,
+                },
+                allow_redirects=True,
+                timeout=30,
+            )
+
+            # Check if login was successful
+            if login_resp.status_code != 200 or "/login" in login_resp.url:
+                print(f"  [ERROR] Login failed. Final URL: {login_resp.url}")
+                return False
+
+            # Step 3: Get CSRF token for API calls
             csrf_resp = self.session.get(f"{self.base_url}/api/v1/security/csrf_token/", timeout=10)
             if csrf_resp.status_code == 200:
-                csrf = csrf_resp.json().get("result")
-                self.session.headers.update({"X-CSRFToken": csrf})
+                api_csrf = csrf_resp.json().get("result", "")
+                self.session.headers.update({"X-CSRFToken": api_csrf})
 
             self.session.headers.update({"Referer": self.base_url})
             return True
+
         except Exception as e:
             print(f"  [ERROR] Auth failed: {e}")
             return False
