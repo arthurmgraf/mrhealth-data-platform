@@ -120,7 +120,7 @@ jobs:
           chmod +x /usr/local/bin/terragrunt
 
       - name: Download plan artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: tfplan-${{ github.event.inputs.environment }}
           path: infra/environments/${{ github.event.inputs.environment }}
