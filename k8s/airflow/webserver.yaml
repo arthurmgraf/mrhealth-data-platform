@@ -94,7 +94,7 @@ spec:
           image: registry.k8s.io/git-sync/git-sync:v4.1.0
           env:
             - name: GITSYNC_REPO
-              value: "https://github.com/your-org/projeto_empresa_data_lakers.git"
+              value: "https://github.com/your-org/mrhealth-data-platform.git"
             - name: GITSYNC_BRANCH
               value: "main"
             - name: GITSYNC_PERIOD

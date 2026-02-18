@@ -51,19 +51,19 @@
     {"id":"bq_location","type":"text","x":820,"y":175,"width":410,"height":15,"text":"Location: US (multi-region) | Free: 10GB storage + 1TB queries/month","fontSize":11,"fontFamily":3,"strokeColor":"#868e96"},
 
     {"id":"bq_bronze","type":"rectangle","x":820,"y":200,"width":200,"height":100,"strokeColor":"#9c6644","backgroundColor":"#fef3c7","fillStyle":"solid","strokeWidth":2},
-    {"id":"bq_bronze_title","type":"text","x":835,"y":210,"width":170,"height":18,"text":"BRONZE: case_ficticio_bronze","fontSize":10,"fontFamily":3,"strokeColor":"#9c6644"},
+    {"id":"bq_bronze_title","type":"text","x":835,"y":210,"width":170,"height":18,"text":"BRONZE: mrhealth_bronze","fontSize":10,"fontFamily":3,"strokeColor":"#9c6644"},
     {"id":"bq_bronze_content","type":"text","x":835,"y":233,"width":170,"height":60,"text":"6 tables (raw data)\nPartition: _ingest_date\nMode: WRITE_APPEND\nVolume: ~5MB/day","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
 
     {"id":"bq_silver","type":"rectangle","x":1030,"y":200,"width":200,"height":100,"strokeColor":"#4263eb","backgroundColor":"#edf2ff","fillStyle":"solid","strokeWidth":2},
-    {"id":"bq_silver_title","type":"text","x":1045,"y":210,"width":170,"height":18,"text":"SILVER: case_ficticio_silver","fontSize":10,"fontFamily":3,"strokeColor":"#4263eb"},
+    {"id":"bq_silver_title","type":"text","x":1045,"y":210,"width":170,"height":18,"text":"SILVER: mrhealth_silver","fontSize":10,"fontFamily":3,"strokeColor":"#4263eb"},
     {"id":"bq_silver_content","type":"text","x":1045,"y":233,"width":170,"height":60,"text":"6 tables (cleaned)\nTransforms: dedup, cast\nFK validation\nRefresh: daily CREATE OR REPLACE","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
 
     {"id":"bq_gold","type":"rectangle","x":820,"y":315,"width":200,"height":120,"strokeColor":"#e67700","backgroundColor":"#fff9db","fillStyle":"solid","strokeWidth":2},
-    {"id":"bq_gold_title","type":"text","x":835,"y":325,"width":170,"height":18,"text":"GOLD: case_ficticio_gold","fontSize":10,"fontFamily":3,"strokeColor":"#e67700"},
+    {"id":"bq_gold_title","type":"text","x":835,"y":325,"width":170,"height":18,"text":"GOLD: mrhealth_gold","fontSize":10,"fontFamily":3,"strokeColor":"#e67700"},
     {"id":"bq_gold_content","type":"text","x":835,"y":348,"width":170,"height":80,"text":"4 dims + 2 facts + 3 aggs\nKimball Star Schema\nPartition: order_date\nCluster: unit_key, product_key\nQuery SLA: <1s","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
 
     {"id":"bq_monitoring","type":"rectangle","x":1030,"y":315,"width":200,"height":120,"strokeColor":"#087f5b","backgroundColor":"#e6fcf5","fillStyle":"solid","strokeWidth":2},
-    {"id":"bq_monitoring_title","type":"text","x":1045,"y":325,"width":170,"height":18,"text":"case_ficticio_monitoring","fontSize":10,"fontFamily":3,"strokeColor":"#087f5b"},
+    {"id":"bq_monitoring_title","type":"text","x":1045,"y":325,"width":170,"height":18,"text":"mrhealth_monitoring","fontSize":10,"fontFamily":3,"strokeColor":"#087f5b"},
     {"id":"bq_monitoring_content","type":"text","x":1045,"y":348,"width":170,"height":80,"text":"Pipeline health metrics\nData quality checks\nIngestion timestamps\nAlert thresholds","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
 
     {"id":"bq_cost","type":"text","x":820,"y":455,"width":410,"height":55,"text":"Cost Summary: $0.00/month\n  Storage: ~2GB used (10GB free) | Queries: ~50GB/month (1TB free)","fontSize":9,"fontFamily":3,"strokeColor":"#868e96"},

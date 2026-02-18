@@ -1,4 +1,4 @@
-# Case Ficticio - Teste -- Deploy Data Generator Cloud Function
+# MR. HEALTH Data Platform -- Deploy Data Generator Cloud Function
 # ==============================================================
 #
 # Deploys the data-generator HTTP Cloud Function and creates
@@ -30,7 +30,7 @@ if (-not $PROJECT_ID -or -not $BUCKET) {
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "Case Ficticio - Teste -- Deploy Data Generator" -ForegroundColor Cyan
+Write-Host "MR. HEALTH -- Deploy Data Generator" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host "Project:  $PROJECT_ID"
 Write-Host "Region:   $REGION"

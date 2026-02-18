@@ -118,12 +118,12 @@ spec:
         # Dashboard JSON files from repo (hostPath for persistence)
         - name: dashboards-json
           hostPath:
-            path: /home/arthur/case_mrHealth/k8s/grafana/dashboards
+            path: /home/arthur/mrhealth-data-platform/k8s/grafana/dashboards
             type: Directory
         # GCP service account key from host filesystem
         - name: gcp-credentials
           hostPath:
-            path: /home/arthur/case_mrHealth/keys
+            path: /home/arthur/mrhealth-data-platform/keys
             type: Directory
         - name: alerting-rules
           configMap:

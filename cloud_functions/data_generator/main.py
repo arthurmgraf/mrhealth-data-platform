@@ -1,6 +1,6 @@
 """
-Case Ficticio - Teste -- Data Generator Cloud Function
-======================================================
+MR. HEALTH Data Platform -- Data Generator Cloud Function
+=========================================================
 
 HTTP Cloud Function triggered by Cloud Scheduler.
 Generates incremental sales data for a 2-hour business window
@@ -13,7 +13,7 @@ Flow:
       -> Upload CSVs to GCS raw/csv_sales/
       -> csv-processor triggers automatically (Eventarc)
 
-Author: Arthur Graf -- Case Ficticio - Teste Project
+Author: Arthur Graf
 Date: February 2026
 """
 

@@ -77,7 +77,7 @@
 
 | # | Gap | Sprint | Status |
 |---|-----|--------|--------|
-| 1 | Dataset naming (`case_ficticio` -> `mrhealth`) | Sprint 1 | DONE |
+| 1 | Dataset naming (legacy -> `mrhealth`) | Sprint 1 | DONE |
 | 2 | Hardcoded project IDs (`sixth-foundry`) | Sprint 1 | DONE |
 | 3 | DRY violations (duplicated load_config, execute_sql_file) | Sprint 1 | DONE |
 | 4 | Critical bug: quality_check_silver using `id_pedido` | Sprint 1 | DONE |

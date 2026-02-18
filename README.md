@@ -145,7 +145,7 @@ PostgreSQL (K3s)  ──SSH Tunnel──>  Cloud Function  ──CSV──>  GCS
 ## Repository Structure
 
 ```
-projeto_empresa_data_lakers/
+mrhealth-data-platform/
 ├── cloud_functions/                 # 3 Cloud Functions (deployed to GCP)
 │   ├── csv_processor/               # Event-driven CSV → BigQuery Bronze
 │   ├── data_generator/              # HTTP-triggered fake data generator
@@ -216,7 +216,7 @@ projeto_empresa_data_lakers/
 ```bash
 # Clone and configure
 git clone <repository-url>
-cd projeto_empresa_data_lakers
+cd mrhealth-data-platform
 pip install -r requirements.txt
 
 # Set environment variables

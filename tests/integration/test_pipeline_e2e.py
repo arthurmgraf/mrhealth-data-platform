@@ -179,7 +179,7 @@ class TestSQLFileIntegrity:
     def test_no_hardcoded_project_ids_in_sql(self, project_root):
         """SQL files should not contain hardcoded project IDs."""
         import re
-        pattern = re.compile(r"sixth-foundry-\d+-\w+|case.ficticio", re.IGNORECASE)
+        pattern = re.compile(r"sixth-foundry-\d+-\w+", re.IGNORECASE)
 
         for sql_dir in ["bronze", "silver", "gold", "monitoring"]:
             path = project_root / "sql" / sql_dir

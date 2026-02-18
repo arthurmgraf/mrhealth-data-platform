@@ -164,7 +164,7 @@ spec:
             name: superset-config
         - name: gcp-credentials
           hostPath:
-            path: /home/arthur/case_mrHealth/keys
+            path: /home/arthur/mrhealth-data-platform/keys
             type: Directory
 ---
 apiVersion: v1

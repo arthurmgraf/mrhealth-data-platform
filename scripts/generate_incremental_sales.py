@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Case Ficticio - Teste -- Incremental Sales Data Generator
-=========================================================
+MR. HEALTH Data Platform -- Incremental Sales Data Generator
+=============================================================
 
 Generates orders for a specific 2-hour business window.
 Reuses generation logic from generate_fake_sales.py (no duplication).
@@ -11,7 +11,7 @@ Usage:
     python scripts/generate_incremental_sales.py --window-start 18:00 --window-end 20:00 --upload
     python scripts/generate_incremental_sales.py --window-start 10:00 --window-end 12:00 --date 2026-02-01 --seed 42
 
-Author: Arthur Graf -- Case Ficticio - Teste Project
+Author: Arthur Graf
 Date: February 2026
 """
 
@@ -118,7 +118,7 @@ def main() -> int:
     min_orders, max_orders = get_volume_for_window(start_hour, end_hour)
 
     print("=" * 60)
-    print("Case Ficticio - Teste -- Incremental Sales Generator")
+    print("MR. HEALTH -- Incremental Sales Generator")
     print("=" * 60)
     print(f"  Window:  {args.window_start} - {args.window_end}")
     print(f"  Date:    {date.strftime('%Y-%m-%d')}")

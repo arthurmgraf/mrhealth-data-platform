@@ -6,8 +6,8 @@ Thank you for your interest in contributing!
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/arthurmgraf/case_mrHealth.git
-   cd case_mrHealth
+   git clone https://github.com/arthurmgraf/mrhealth-data-platform.git
+   cd mrhealth-data-platform
    ```
 
 2. Create a virtual environment:
@@ -64,13 +64,13 @@ Target coverage: 97%+
 
 We use [Conventional Commits](https://www.conventionalcommits.org/):
 
-- `feat:` — New feature
-- `fix:` — Bug fix
-- `docs:` — Documentation only
-- `refactor:` — Code refactoring
-- `test:` — Adding or updating tests
-- `chore:` — Maintenance tasks
-- `infra:` — Infrastructure changes
+- `feat:` ï¿½ New feature
+- `fix:` ï¿½ Bug fix
+- `docs:` ï¿½ Documentation only
+- `refactor:` ï¿½ Code refactoring
+- `test:` ï¿½ Adding or updating tests
+- `chore:` ï¿½ Maintenance tasks
+- `infra:` ï¿½ Infrastructure changes
 
 ## Data Engineering Guidelines
 

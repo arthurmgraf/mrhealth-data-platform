@@ -58,7 +58,7 @@
     {"id":"superset_bq","type":"rectangle","x":910,"y":405,"width":240,"height":100,"strokeColor":"#4285F4","backgroundColor":"#e8f0fe","fillStyle":"solid","strokeWidth":2},
     {"id":"logo_bigquery","type":"image","x":925,"y":412,"width":24,"height":24,"fileId":"bigquery_logo","scale":[1,1],"roughness":0,"opacity":100},
     {"id":"superset_bq_title","type":"text","x":955,"y":415,"width":180,"height":20,"text":"BigQuery Connection","fontSize":13,"fontFamily":3,"strokeColor":"#4285F4"},
-    {"id":"superset_bq_content","type":"text","x":925,"y":445,"width":210,"height":55,"text":"SQLAlchemy URI:\nbigquery://project/dataset\n\nAuth: Service Account JSON\nDatasets: case_ficticio_gold","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
+    {"id":"superset_bq_content","type":"text","x":925,"y":445,"width":210,"height":55,"text":"SQLAlchemy URI:\nbigquery://project/dataset\n\nAuth: Service Account JSON\nDatasets: mrhealth_gold","fontSize":9,"fontFamily":3,"strokeColor":"#495057"},
 
     {"id":"superset_config","type":"rectangle","x":640,"y":525,"width":510,"height":65,"strokeColor":"#495057","backgroundColor":"#f8f9fa","fillStyle":"solid","strokeWidth":1},
     {"id":"superset_config_title","type":"text","x":655,"y":535,"width":200,"height":18,"text":"Configuration","fontSize":11,"fontFamily":3,"strokeColor":"#495057"},

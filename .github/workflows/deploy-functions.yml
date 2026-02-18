@@ -82,6 +82,7 @@ jobs:
             --entry-point=process_csv \
             --trigger-event-filters="type=google.cloud.storage.object.v1.finalized" \
             --trigger-event-filters="bucket=${{ secrets.GCS_BUCKET_NAME }}" \
+            --set-env-vars="PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }},BQ_DATASET=mrhealth_bronze" \
             --memory=256MB \
             --timeout=300s \
             --project=${{ secrets.GCP_PROJECT_ID }}
@@ -112,9 +113,10 @@ jobs:
             --region=${{ env.GCP_REGION }} \
             --runtime=python311 \
             --source=cloud_functions/pg_reference_extractor \
-            --entry-point=extract_references \
+            --entry-point=extract_reference_data \
             --trigger-http \
             --allow-unauthenticated=false \
+            --set-env-vars="PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }}" \
             --memory=256MB \
             --timeout=300s \
             --project=${{ secrets.GCP_PROJECT_ID }}
@@ -148,6 +150,7 @@ jobs:
             --entry-point=generate_data \
             --trigger-http \
             --allow-unauthenticated=false \
+            --set-env-vars="PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }},NUM_UNITS=50" \
             --memory=256MB \
             --timeout=300s \
             --project=${{ secrets.GCP_PROJECT_ID }}

@@ -36,7 +36,7 @@
 
     {"id":"bronze_box","type":"rectangle","x":800,"y":100,"width":200,"height":250,"strokeColor":"#9c6644","backgroundColor":"#fef3c7","fillStyle":"solid","strokeWidth":3,"roundness":{"type":3}},
     {"id":"bronze_title","type":"text","x":815,"y":115,"width":170,"height":25,"text":"BRONZE","fontSize":18,"fontFamily":3,"strokeColor":"#9c6644"},
-    {"id":"bronze_subtitle","type":"text","x":815,"y":140,"width":170,"height":15,"text":"case_ficticio_bronze","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
+    {"id":"bronze_subtitle","type":"text","x":815,"y":140,"width":170,"height":15,"text":"mrhealth_bronze","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
     {"id":"bronze_content","type":"text","x":815,"y":165,"width":170,"height":175,"text":"Raw, Append-Only\n━━━━━━━━━━━━━━━━━━\nTables (6):\n  orders\n  order_items\n  products\n  units\n  states\n  countries\n━━━━━━━━━━━━━━━━━━\nPartition: _ingest_date\nValidation: PyArrow\nSLA: <5 min after upload","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
 
     {"id":"arrow_bronze_silver","type":"arrow","x":1000,"y":225,"width":60,"height":0,"strokeColor":"#4263eb","strokeWidth":3,"points":[[0,0],[60,0]],"endArrowhead":"arrow"},
@@ -45,7 +45,7 @@
 
     {"id":"silver_box","type":"rectangle","x":1080,"y":100,"width":200,"height":250,"strokeColor":"#4263eb","backgroundColor":"#edf2ff","fillStyle":"solid","strokeWidth":3,"roundness":{"type":3}},
     {"id":"silver_title","type":"text","x":1095,"y":115,"width":170,"height":25,"text":"SILVER","fontSize":18,"fontFamily":3,"strokeColor":"#4263eb"},
-    {"id":"silver_subtitle","type":"text","x":1095,"y":140,"width":170,"height":15,"text":"case_ficticio_silver","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
+    {"id":"silver_subtitle","type":"text","x":1095,"y":140,"width":170,"height":15,"text":"mrhealth_silver","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
     {"id":"silver_content","type":"text","x":1095,"y":165,"width":170,"height":175,"text":"Cleaned, Deduplicated\n━━━━━━━━━━━━━━━━━━\nTables (6):\n  orders (cleaned)\n  order_items (calc)\n  products\n  units (denorm)\n  states\n  countries\n━━━━━━━━━━━━━━━━━━\nTransforms: ROW_NUMBER\nFK Validation: INNER JOIN\nSchedule: 02:30 BRT","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
 
     {"id":"arrow_silver_gold","type":"arrow","x":1280,"y":225,"width":60,"height":0,"strokeColor":"#e67700","strokeWidth":3,"points":[[0,0],[60,0]],"endArrowhead":"arrow"},
@@ -54,7 +54,7 @@
 
     {"id":"gold_box","type":"rectangle","x":1360,"y":100,"width":200,"height":250,"strokeColor":"#e67700","backgroundColor":"#fff9db","fillStyle":"solid","strokeWidth":3,"roundness":{"type":3}},
     {"id":"gold_title","type":"text","x":1375,"y":115,"width":170,"height":25,"text":"GOLD","fontSize":18,"fontFamily":3,"strokeColor":"#e67700"},
-    {"id":"gold_subtitle","type":"text","x":1375,"y":140,"width":170,"height":15,"text":"case_ficticio_gold","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
+    {"id":"gold_subtitle","type":"text","x":1375,"y":140,"width":170,"height":15,"text":"mrhealth_gold","fontSize":10,"fontFamily":3,"strokeColor":"#868e96"},
     {"id":"gold_content","type":"text","x":1375,"y":165,"width":170,"height":175,"text":"Star Schema (Kimball)\n━━━━━━━━━━━━━━━━━━\nDimensions (4):\n  dim_date\n  dim_product\n  dim_unit\n  dim_geography\nFacts (2):\n  fact_sales\n  fact_order_items\nAggregations (3):\n  agg_daily/unit/product\n━━━━━━━━━━━━━━━━━━\nSchedule: 03:00 BRT","fontSize":10,"fontFamily":3,"strokeColor":"#495057"},
 
     {"id":"arrow_gold_bi","type":"arrow","x":1560,"y":225,"width":60,"height":0,"strokeColor":"#7048e8","strokeWidth":2,"points":[[0,0],[60,0]],"endArrowhead":"arrow"},

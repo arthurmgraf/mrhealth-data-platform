@@ -68,7 +68,7 @@
 | **DAG que popula** | 🖧 SERVIDOR | Airflow DAG `mrhealth_daily_pipeline` (02:00 BRT) |
 | **Trigger manual** | 🖧 SERVIDOR | http://15.235.61.251:30180 → DAGs → `mrhealth_daily_pipeline` → Trigger |
 | **SQLs de transformação** | 🖥️ LOCAL | `sql/silver/01_transform_orders.sql`, `02_transform_items.sql`, `03_transform_references.sql` |
-| **Cópia no servidor** | 🖧 SERVIDOR | `/home/arthur/case_mrHealth/sql/silver/` (montado via hostPath) |
+| **Cópia no servidor** | 🖧 SERVIDOR | `/home/arthur/mrhealth-data-platform/sql/silver/` (montado via hostPath) |
 
 ---
 
@@ -81,7 +81,7 @@
 | **Fatos** | ☁️ GCP | `fact_sales` (grain: pedido), `fact_order_items` (grain: item) |
 | **Agregações** | ☁️ GCP | `agg_daily_sales`, `agg_unit_performance`, `agg_product_performance` |
 | **SQLs de criação** | 🖥️ LOCAL | `sql/gold/01_dim_date.sql` até `sql/gold/09_agg_product_performance.sql` |
-| **Cópia no servidor** | 🖧 SERVIDOR | `/home/arthur/case_mrHealth/sql/gold/` (montado via hostPath) |
+| **Cópia no servidor** | 🖧 SERVIDOR | `/home/arthur/mrhealth-data-platform/sql/gold/` (montado via hostPath) |
 
 ---
 
@@ -121,8 +121,8 @@
 | **Reprocessar DAG** | 🖧 SERVIDOR | `kubectl exec -n mrhealth-db deployment/airflow-scheduler -- airflow dags trigger <dag_name>` |
 | **Verificar Cloud Functions** | ☁️ GCP | `gcloud functions logs read csv-processor --project=your-gcp-project-id --limit=20` |
 | **Deploy de manifests K8s** | 🖥️ LOCAL | `k8s/*.yaml` → aplicar com `kubectl apply -f` |
-| **Código-fonte do projeto** | 🖥️ LOCAL | `projeto_empresa_data_lakers/` |
-| **Cópia operacional (DAGs, plugins, SQL)** | 🖧 SERVIDOR | `/home/arthur/case_mrHealth/` |
+| **Código-fonte do projeto** | 🖥️ LOCAL | `mrhealth-data-platform/` |
+| **Cópia operacional (DAGs, plugins, SQL)** | 🖧 SERVIDOR | `/home/arthur/mrhealth-data-platform/` |
 
 > **Credenciais:** Todas as senhas estao em `docs/CREDENCIAIS_SEGURAS.md` (arquivo no .gitignore)
 
@@ -345,18 +345,18 @@ ssh -L 5432:localhost:30432 arthur@15.235.61.251
 ### Arquitetura de Deploy
 - **Executor:** LocalExecutor (sem Celery, zero overhead)
 - **Scheduler Memory:** 2Gi limits / 1Gi requests (1Gi causa OOM com paralelismo)
-- **Persistencia:** hostPath volumes montando `/home/arthur/case_mrHealth/` diretamente nos pods
-- **GCP Credentials:** `/home/arthur/case_mrHealth/keys/gcp.json` (montado como `/opt/airflow/keys/gcp.json`)
+- **Persistencia:** hostPath volumes montando `/home/arthur/mrhealth-data-platform/` diretamente nos pods
+- **GCP Credentials:** `/home/arthur/mrhealth-data-platform/keys/gcp.json` (montado como `/opt/airflow/keys/gcp.json`)
 
 ### Volumes montados (hostPath)
 
 | Container Path | Host Path | Conteudo |
 |----------------|-----------|----------|
-| /opt/airflow/dags/ | /home/arthur/case_mrHealth/dags/ | 5 DAG files |
-| /opt/airflow/plugins/ | /home/arthur/case_mrHealth/plugins/ | mrhealth package |
-| /opt/airflow/config/ | /home/arthur/case_mrHealth/config/ | project_config.yaml |
-| /opt/airflow/sql/ | /home/arthur/case_mrHealth/sql/ | 15 SQL scripts |
-| /opt/airflow/keys/ | /home/arthur/case_mrHealth/keys/ | gcp.json |
+| /opt/airflow/dags/ | /home/arthur/mrhealth-data-platform/dags/ | 5 DAG files |
+| /opt/airflow/plugins/ | /home/arthur/mrhealth-data-platform/plugins/ | mrhealth package |
+| /opt/airflow/config/ | /home/arthur/mrhealth-data-platform/config/ | project_config.yaml |
+| /opt/airflow/sql/ | /home/arthur/mrhealth-data-platform/sql/ | 15 SQL scripts |
+| /opt/airflow/keys/ | /home/arthur/mrhealth-data-platform/keys/ | gcp.json |
 
 > **Importante:** Alteracoes nos arquivos do servidor sao refletidas imediatamente nos pods (sem rebuild).
 
@@ -465,7 +465,7 @@ ssh arthur@15.235.61.251 'kubectl logs -n mrhealth-db deployment/superset --tail
 
 ### Estrutura
 ```
-projeto_empresa_data_lakers/
+mrhealth-data-platform/
 ├── cloud_functions/              # 3 Cloud Functions
 │   ├── csv_processor/            # Eventarc: GCS upload -> Bronze
 │   ├── data_generator/           # HTTP: gera dados fake

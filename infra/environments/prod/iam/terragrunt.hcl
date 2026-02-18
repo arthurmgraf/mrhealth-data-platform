@@ -113,7 +113,7 @@ inputs = {
     pool_description      = "WIF pool for GitHub Actions CI/CD pipelines"
     provider_id           = "github-actions-provider"
     provider_display_name = "GitHub Actions OIDC"
-    github_repo           = "FlGraf/projeto_empresa_data_lakers"
+    github_repo           = "FlGraf/mrhealth-data-platform"
     service_account_key   = "github_ci"
   }
 }
