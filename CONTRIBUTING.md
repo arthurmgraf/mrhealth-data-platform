@@ -31,7 +31,7 @@ Thank you for your interest in contributing!
 ## Code Standards
 
 - **Linting**: `ruff check .`
-- **Type checking**: `mypy . --strict`
+- **Formatting**: `ruff format .`
 - **Testing**: `pytest tests/ -v`
 - **SQL**: Follow BigQuery SQL style guide
 

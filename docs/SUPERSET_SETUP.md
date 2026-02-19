@@ -35,7 +35,7 @@ Before setting up Superset dashboards, ensure:
    - Run: `python scripts/build_gold_layer.py` and `python scripts/build_aggregations.py`
 
 3. **GCP credentials configured**
-   - ADC credentials: `/home/arthur/case_mrHealth/keys/gcp.json`
+   - ADC credentials: `/home/arthur/mrhealth-data-platform/keys/gcp.json`
    - Environment variable: `GOOGLE_APPLICATION_CREDENTIALS` set in Superset deployment
 
 4. **Dependencies installed**
@@ -170,14 +170,14 @@ Superset 4.x uses **native filters** instead of deprecated Filter Box component.
 
 **Connection details:**
 - **Type:** Google BigQuery
-- **SQLAlchemy URI:** `bigquery://mrhealth-data-lakers-485810`
+- **SQLAlchemy URI:** `bigquery://mrhealth-datalake-485810`
 - **Authentication:** ADC (Application Default Credentials)
 - **Driver:** `sqlalchemy-bigquery` (installed in initContainer)
 
 **Manual connection creation:**
 1. Navigate to: Settings > Database Connections > + Database
 2. Select: Google BigQuery
-3. Enter SQLAlchemy URI: `bigquery://mrhealth-data-lakers-485810`
+3. Enter SQLAlchemy URI: `bigquery://mrhealth-datalake-485810`
 4. Test connection
 5. Save
 
@@ -260,7 +260,7 @@ If the automated script fails, create dashboards manually via Superset UI:
 ### Step 1: Create Database Connection
 1. Navigate to: Settings > Database Connections > + Database
 2. Select: Google BigQuery
-3. Enter SQLAlchemy URI: `bigquery://mrhealth-data-lakers-485810`
+3. Enter SQLAlchemy URI: `bigquery://mrhealth-datalake-485810`
 4. Test connection and Save
 
 ### Step 2: Create Datasets

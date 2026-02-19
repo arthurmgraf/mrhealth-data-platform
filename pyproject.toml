@@ -52,9 +52,16 @@ known-first-party = ["scripts", "cloud_functions", "tests"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short"
+addopts = "-v --tb=short --strict-markers"
 pythonpath = [".", "scripts"]
+markers = [
+    "unit: Unit tests (fast, no external dependencies)",
+    "integration: Integration tests (requires GCP access)",
+    "e2e: End-to-end tests (full pipeline)",
+    "slow: Slow tests (> 1 minute)",
+]
 
 [tool.coverage.run]
 source = ["scripts", "cloud_functions"]

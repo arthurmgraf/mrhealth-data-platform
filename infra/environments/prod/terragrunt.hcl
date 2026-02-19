@@ -12,6 +12,6 @@ locals {
     project     = "mrhealth"
     environment = local.environment
     managed_by  = "terraform"
-    team        = "data-lakers"
+    team        = "data-engineering"
   }
 }

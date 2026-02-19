@@ -1,0 +1,57 @@
+# MR. HEALTH Data Platform -- Project Configuration (Example)
+# Copy this file to project_config.yaml and replace placeholders with your values.
+
+project:
+  id: your-gcp-project-id  # GCP project ID
+  name: MR Health Data Platform MVP
+  region: us-central1
+  environment: mvp
+
+storage:
+  bucket: your-gcs-bucket-name  # GCS bucket for data lake
+  prefixes:
+    raw_sales: raw/csv_sales
+    raw_reference: raw/reference_data
+    bronze: bronze
+    quarantine: quarantine
+
+bigquery:
+  location: US
+  datasets:
+    bronze: mrhealth_bronze
+    silver: mrhealth_silver
+    gold: mrhealth_gold
+    monitoring: mrhealth_monitoring
+
+postgresql:
+  host: your-k3s-server-ip  # K3s node IP
+  port: 5432
+  database: mrhealth
+  admin_user: mrhealth_admin
+  extractor_user: mrh_extractor
+  ssh_user: your-ssh-user
+
+cloud_functions:
+  csv_processor:
+    name: csv-processor
+    runtime: python311
+    memory: 256MB
+    timeout: 300s
+    trigger_bucket: your-gcs-bucket-name
+    trigger_prefix: raw/csv_sales/
+  pg_reference_extractor:
+    name: pg-reference-extractor
+    runtime: python311
+    memory: 256MB
+    timeout: 300s
+    trigger: http
+    scheduler_cron: "0 1 * * *"
+    scheduler_timezone: America/Sao_Paulo
+  data_generator:
+    name: data-generator
+    runtime: python311
+    memory: 256MB
+    timeout: 300s
+    trigger: http
+    scheduler_cron: "0 10,12,14,16,18,20,22 * * *"
+    scheduler_timezone: America/Sao_Paulo

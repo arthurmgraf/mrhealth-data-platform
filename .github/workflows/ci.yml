@@ -1,6 +1,6 @@
 # CI Pipeline: Lint, Security Scan, Test
-# Runs on every PR to main/dev and pushes to dev.
-# Three stages: lint -> security -> test (parallel after lint)
+# Runs on every push/PR to main and dev branches.
+# Three stages: lint -> security + test (parallel after lint)
 
 name: CI - Lint, Security & Test
 
@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [main, dev]
   push:
-    branches: [dev]
+    branches: [main, dev]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -18,6 +18,8 @@ env:
   PYTHON_VERSION: "3.11"
   GCP_PROJECT_ID: "test-ci-project"
   GCS_BUCKET_NAME: "test-ci-bucket"
+  PROJECT_ID: "test-ci-project"
+  BUCKET_NAME: "test-ci-bucket"
 
 jobs:
   lint:
@@ -113,6 +115,7 @@ jobs:
         run: |
           echo "MRHEALTH_CONFIG_PATH=$PWD/config/project_config.yaml" >> $GITHUB_ENV
           echo "MRHEALTH_SQL_PATH=$PWD/sql" >> $GITHUB_ENV
+          echo "AIRFLOW_HOME=/tmp/airflow" >> $GITHUB_ENV
 
       - name: Run unit tests
         run: >

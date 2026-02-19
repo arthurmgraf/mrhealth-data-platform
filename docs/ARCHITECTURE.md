@@ -982,7 +982,7 @@ This architecture is documented through **8 Architecture Decision Records (ADRs)
 **Scenario 1: K3s node failure**
 1. Provision new node
 2. Install K3s: `curl -sfL https://get.k3s.io | sh -`
-3. Clone repo: `git clone https://github.com/user/case_mrHealth.git`
+3. Clone repo: `git clone https://github.com/arthurmgraf/mrhealth-data-platform.git`
 4. Apply secrets: `python scripts/setup_k8s_secrets.py`
 5. Deploy: `kubectl apply -f k8s/`
 6. **RTO:** 30 minutes

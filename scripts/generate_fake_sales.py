@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Case Fictício - Teste -- Fake Sales Data Generator
-========================================
+MR. HEALTH Data Platform -- Fake Sales Data Generator
+=====================================================
 
-Generates realistic fake data for the Case Fictício - Teste data platform MVP.
-Produces CSV files matching the schema defined in case_CaseFicticio.md:
-  - pedido.csv (ORDER.CSV): Sales orders per unit per day
-  - item_pedido.csv (ORDER_ITEM.CSV): Order line items
+Generates realistic fake data for the MR. HEALTH data platform.
+Produces CSV files matching the ingestion schema:
+  - pedido.csv: Sales orders per unit per day
+  - item_pedido.csv: Order line items
   - produto.csv: Product catalog (reference)
   - unidade.csv: Unit/restaurant list (reference)
   - estado.csv: States (reference)
@@ -18,7 +18,7 @@ Usage:
     python generate_fake_sales.py --start-date 2026-01-01 --end-date 2026-01-31
     python generate_fake_sales.py --output-dir ./test_data --seed 42
 
-Author: Arthur Graf -- Case Fictício - Teste Project
+Author: Arthur Graf -- MR. HEALTH Data Platform
 Date: January 2026
 """
 
@@ -69,7 +69,7 @@ PRODUCT_CATALOG = [
     {"id": 30, "name": "Pudim de Chia com Manga", "price": 14.90},
 ]
 
-# Southern Brazil states (where Case Fictício - Teste operates)
+# Southern Brazil states (where MR. HEALTH operates)
 STATES = [
     {"id": 1, "name": "Rio Grande do Sul", "country_id": 1},
     {"id": 2, "name": "Santa Catarina", "country_id": 1},
@@ -452,7 +452,7 @@ def print_summary(stats: dict, output_dir: Path) -> None:
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Case Fictício - Teste Fake Sales Data Generator",
+        description="MR. HEALTH Data Platform Fake Sales Data Generator",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -527,7 +527,7 @@ def main() -> None:
     args = parse_args()
 
     print("=" * 60)
-    print("Case Fictício - Teste -- Fake Sales Data Generator")
+    print("MR. HEALTH Data Platform -- Fake Sales Data Generator")
     print("=" * 60)
 
     # Resolve dates

@@ -1,5 +1,10 @@
 # MR. HEALTH Data Platform
 
+![CI](https://github.com/arthurmgraf/mrhealth-data-platform/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![GCP Cost](https://img.shields.io/badge/GCP%20cost-%240.00%2Fmo-brightgreen)
+
 Enterprise-grade data warehouse on GCP Free Tier ($0/month). Event-driven ingestion, Medallion architecture (Bronze/Silver/Gold), Kimball Star Schema, Apache Airflow orchestration, full observability stack.
 
 Built for a 50-unit restaurant chain processing ~100 CSVs/day.
@@ -215,7 +220,7 @@ mrhealth-data-platform/
 
 ```bash
 # Clone and configure
-git clone <repository-url>
+git clone https://github.com/arthurmgraf/mrhealth-data-platform.git
 cd mrhealth-data-platform
 pip install -r requirements.txt
 
