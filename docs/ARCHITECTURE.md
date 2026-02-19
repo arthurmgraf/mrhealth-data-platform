@@ -88,7 +88,7 @@
        │          │
        │◄─────────┘
        │
-       │ Airflow DAG (daily 05:00 UTC)
+       │ Airflow DAG (daily 02:00 BRT)
        ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    BigQuery Silver Layer                         │
@@ -324,7 +324,7 @@ with sshtunnel.SSHTunnelForwarder(
 | Service | Namespace | NodePort | Resource Limits |
 |---------|-----------|----------|-----------------|
 | PostgreSQL 16 | mrhealth-db | 30432 | 512Mi RAM, 1 CPU |
-| Airflow Webserver | mrhealth-db | 30080 | 1Gi RAM, 1 CPU |
+| Airflow Webserver | mrhealth-db | 30180 | 1Gi RAM, 1 CPU |
 | Airflow Scheduler | mrhealth-db | N/A | 2Gi RAM, 2 CPU |
 | Superset | mrhealth-db | 30188 | 1Gi RAM, 1 CPU |
 | Grafana | mrhealth-db | 30300 | 256Mi RAM, 0.5 CPU |
@@ -464,13 +464,13 @@ spec:
 
 ```text
 ┌─────────────────────────┐
-│ reference_refresh       │ (Monthly, 1st day 03:00)
+│ reference_refresh       │ (Daily 01:00 BRT)
 │ Trigger pg-extractor CF │
 └────────┬────────────────┘
          │
          ▼
 ┌─────────────────────────┐
-│ daily_pipeline          │ (Daily 05:00 UTC)
+│ daily_pipeline          │ (Daily 02:00 BRT)
 │ Bronze → Silver → Gold  │
 └────────┬────────────────┘
          │
@@ -484,7 +484,7 @@ spec:
          │
          ▼
 ┌─────────────────────────┐
-│ data_retention          │ (Weekly, Sunday 02:00)
+│ data_retention          │ (Weekly, Sunday 04:00)
 │ GCS lifecycle + BQ part │
 └─────────────────────────┘
 ```
@@ -494,28 +494,25 @@ spec:
 **1. daily_pipeline** (`mrhealth_daily_pipeline.py`)
 
 ```python
-# 9 BigQuery SQL transforms with strict dependencies
+# 10 tasks with quality gates between layers
 tasks = [
-    # Silver Layer (3 SQLs)
-    "build_silver_sales",       # Bronze sales_orders → Silver sales
-    "build_silver_order_items", # Bronze order_items + produto → Silver order_items
-    "build_silver_payments",    # Bronze payment_methods → Silver payments
-
-    # Gold Dimensions (4 SQLs)
-    "build_dim_date",           # Generate date dimension (2020-2030)
-    "build_dim_product",        # produto → dim_product
-    "build_dim_unit",           # unidade + estado + pais → dim_unit
-    "build_dim_geography",      # estado + pais → dim_geography
-
-    # Gold Facts (2 SQLs)
-    "build_fact_sales",         # Silver sales + dims → fact_sales
-    "build_fact_order_items",   # Silver order_items + dims → fact_order_items
+    "sense_new_files",          # GCS sensor: wait for CSV files (soft_fail)
+    "validate_bronze",          # BigQuery check: Bronze has data
+    "build_silver",             # Execute 3 Silver SQL transforms
+    "quality_check_silver",     # Validate Silver (not empty, no NULL order_ids)
+    "build_gold_dimensions",    # 4 dims: date, product, unit, geography
+    "build_gold_facts",         # 2 facts: fact_sales, fact_order_items
+    "build_aggregations",       # 3 aggs: daily_sales, unit_perf, product_perf
+    "quality_check_gold",       # Validate Gold star schema (referential integrity)
+    "validate_gold",            # BigQuery check: Gold fact_sales has rows
+    "notify_completion",        # Log pipeline summary + save metrics
 ]
 
 # Dependency chain
-build_silver_sales >> build_dim_date
-build_silver_order_items >> build_dim_product
-build_silver_order_items >> build_fact_order_items
+sense_new_files >> validate_bronze >> build_silver >> quality_check_silver
+quality_check_silver >> [build_gold_dimensions, build_gold_facts]
+[build_gold_dimensions, build_gold_facts] >> build_aggregations
+build_aggregations >> quality_check_gold >> validate_gold >> notify_completion
 ```
 
 **Execution Pattern:**
@@ -558,7 +555,7 @@ BigQueryDataQualityOperator(
 
 **4. reference_refresh** (`mrhealth_reference_refresh.py`)
 
-- **Trigger:** Monthly (1st day, 03:00 UTC) or manual
+- **Trigger:** Daily (01:00 BRT) or manual
 - **HTTP Call:** Invoke `pg-reference-extractor` Cloud Function with IAM auth
 - **Limitation:** Currently fails with `authorized_user` GCP credentials (cannot generate ID tokens)
 - **Workaround:** Manual trigger via `gcloud functions call`
@@ -599,28 +596,33 @@ sensor = GCSObjectsWithPrefixExistenceSensor(
 
 ### Deployment Pattern
 
-**git-sync Sidecar:**
+**hostPath Volumes:**
 ```yaml
-# Airflow scheduler pod sidecar
-- name: git-sync
-  image: registry.k8s.io/git-sync/git-sync:v4.2.4
-  volumeMounts:
-    - name: dags
-      mountPath: /git
-  env:
-    - name: GITSYNC_REPO
-      value: https://github.com/user/mrhealth-dags.git
-    - name: GITSYNC_BRANCH
-      value: main
-    - name: GITSYNC_PERIOD
-      value: "60s"  # Poll every 60s
+# Airflow scheduler pod - mount repo directories from K3s node
+volumes:
+  - name: dags
+    hostPath:
+      path: /home/arthur/mrhealth-data-platform/dags
+      type: Directory
+  - name: plugins
+    hostPath:
+      path: /home/arthur/mrhealth-data-platform/plugins
+      type: Directory
+  - name: sql
+    hostPath:
+      path: /home/arthur/mrhealth-data-platform/sql
+      type: Directory
+  - name: config
+    hostPath:
+      path: /home/arthur/mrhealth-data-platform/config
+      type: Directory
 ```
 
 **Benefits:**
-- Zero-downtime DAG updates
-- No manual `kubectl cp` needed
-- Version control for all DAG changes
-- Automatic rollback via git revert
+- Persistent across pod restarts (unlike `kubectl cp`)
+- Direct `git pull` on server updates DAGs instantly
+- No sidecar containers needed (lower resource usage)
+- DAGs, plugins, SQL, and config all mounted from repo clone
 
 ---
 
@@ -822,9 +824,12 @@ test:
   runs-on: ubuntu-latest
   needs: lint
   steps:
-    - run: pytest tests/ --cov --cov-report=xml
-    - name: Upload coverage
-      uses: codecov/codecov-action@v3
+    - run: >
+        pytest tests/unit/ -v --tb=short
+        --cov=scripts --cov=cloud_functions --cov=plugins
+        --cov-report=xml --cov-report=term-missing
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
 ```
 
 **Pre-commit Hooks:**
@@ -922,14 +927,14 @@ This architecture is documented through **8 Architecture Decision Records (ADRs)
 
 | ADR | Decision | Rationale |
 |-----|----------|-----------|
-| [ADR-001](adr/001-cloud-functions-over-composer.md) | Cloud Functions 2nd Gen over Cloud Composer | $0 cost (Composer is $300+/month), event-driven ingestion |
-| [ADR-002](adr/002-medallion-architecture.md) | Medallion (Bronze/Silver/Gold) | Immutable audit trail, separation of concerns, analytics-optimized Gold |
-| [ADR-003](adr/003-kimball-star-schema.md) | Kimball Star Schema in Gold | Query performance (no complex JOINs), BI tool compatibility |
-| [ADR-004](adr/004-bigquery-over-postgres.md) | BigQuery over PostgreSQL for warehouse | Columnar storage, 1 TB free queries, no index management |
-| [ADR-005](adr/005-k3s-over-gke.md) | K3s self-hosted over GKE | $0 cost ($149/month savings), 50-unit scale doesn't justify GKE overhead |
-| [ADR-006](adr/006-airflow-local-executor.md) | Airflow LocalExecutor over Celery | Simplicity (no Redis/RabbitMQ), 5 DAGs fit in single scheduler |
+| [ADR-001](adr/001-gcp-free-tier-architecture.md) | GCP Free Tier Architecture | $0 cost, permanent free tier (not trial), event-driven ingestion |
+| [ADR-002](adr/002-kimball-star-schema.md) | Kimball Star Schema in Gold | Query performance (no complex JOINs), BI tool compatibility |
+| [ADR-003](adr/003-k3s-over-gke.md) | K3s self-hosted over GKE | $0 cost ($149/month savings), 50-unit scale doesn't justify GKE overhead |
+| [ADR-004](adr/004-event-driven-ingestion.md) | Event-driven ingestion (Eventarc) | Near real-time processing, auto-scaling, $0 cost |
+| [ADR-005](adr/005-airflow-k3s-over-composer.md) | Airflow on K3s over Cloud Composer | $0 cost (Composer is $300+/month), full DAG control |
+| [ADR-006](adr/006-superset-over-looker-studio.md) | Superset over Looker Studio | Version control for dashboards, CSS theming, native filters, no vendor lock-in |
 | [ADR-007](adr/007-k8s-secret-management.md) | Centralized K8s Secrets with placeholder pattern | Single source of truth, no hardcoded passwords, git-safe |
-| [ADR-008](adr/008-superset-over-looker.md) | Superset over Looker Studio | Version control for dashboards, CSS theming, native filters, no vendor lock-in |
+| [ADR-008](adr/008-terraform-iac-strategy.md) | Terraform IaC Strategy | Modular infrastructure, single prod environment, terraform import |
 
 ### Key Architectural Trade-offs
 

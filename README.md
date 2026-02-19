@@ -151,6 +151,12 @@ PostgreSQL (K3s)  ──SSH Tunnel──>  Cloud Function  ──CSV──>  GCS
 
 ```
 mrhealth-data-platform/
+├── .github/                         # CI/CD workflows + Dependabot
+│   ├── workflows/ci.yml             # Lint → Security → Test pipeline
+│   ├── workflows/dag-validation.yml # Airflow DAG validation
+│   ├── workflows/deploy-functions.yml # Cloud Functions deployment
+│   ├── workflows/deploy-infra.yml   # Terraform/Terragrunt deployment
+│   └── dependabot.yml               # Automated dependency updates
 ├── cloud_functions/                 # 3 Cloud Functions (deployed to GCP)
 │   ├── csv_processor/               # Event-driven CSV → BigQuery Bronze
 │   ├── data_generator/              # HTTP-triggered fake data generator
@@ -198,6 +204,12 @@ mrhealth-data-platform/
 │   ├── unit/                        # Unit tests (pytest)
 │   └── integration/                 # PostgreSQL connectivity tests
 ├── docs/                            # Technical documentation
+│   ├── ARCHITECTURE.md              # Architecture deep dive
+│   ├── DATA_CATALOG.md              # Table schemas, lineage, SLAs
+│   ├── SETUP_GUIDE.md               # Step-by-step replication guide
+│   ├── SUPERSET_SETUP.md            # Superset dashboard configuration
+│   ├── RUNBOOKS.md                  # Operational runbooks
+│   └── adr/                         # 8 Architecture Decision Records
 ├── diagrams/                        # Architecture diagrams (Excalidraw)
 ├── superset/                        # Superset Dockerfile (4.0.2)
 ├── airflow/                         # Airflow Dockerfile (2.8-python3.11)
@@ -274,7 +286,7 @@ kubectl apply -f k8s/prometheus/
 
 | Service | Port | URL |
 |---|---|---|
-| Airflow Webserver | 30080 | `http://<server-ip>:30080` |
+| Airflow Webserver | 30180 | `http://<server-ip>:30180` |
 | Apache Superset | 30188 | `http://<server-ip>:30188` |
 | Grafana | 30300 | `http://<server-ip>:30300` |
 | Prometheus | 30090 | `http://<server-ip>:30090` |
@@ -285,7 +297,7 @@ kubectl apply -f k8s/prometheus/
 ## Testing
 
 ```bash
-pytest tests/ -v --cov=scripts --cov-report=term-missing
+pytest tests/ -v --cov=scripts --cov=cloud_functions --cov=plugins --cov-report=term-missing
 ```
 
 ---
@@ -312,6 +324,9 @@ pytest tests/ -v --cov=scripts --cov-report=term-missing
 | [Architecture](docs/ARCHITECTURE.md) | Technical deep-dive: layers, data models, security |
 | [Data Catalog](docs/DATA_CATALOG.md) | Table schemas, lineage, refresh schedules |
 | [Dashboard Guide](docs/SUPERSET_SETUP.md) | Apache Superset dashboard configuration |
+| [Roadmap](ROADMAP.md) | Staff engineer readiness assessment |
+| [ADRs](docs/adr/) | 8 Architecture Decision Records |
+| [Runbooks](docs/RUNBOOKS.md) | Operational runbooks |
 
 ---
 
