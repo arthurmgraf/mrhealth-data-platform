@@ -52,13 +52,8 @@ def test_dag_schedule(dagbag, dag_id, expected):
 
 @pytest.mark.parametrize("dag_id", EXPECTED_DAGS.keys())
 def test_dag_no_cycles(dagbag, dag_id):
-    from airflow.exceptions import AirflowDagCycleException
-
     dag = dagbag.get_dag(dag_id)
-    try:
-        dag.test_cycle()
-    except AirflowDagCycleException:
-        pytest.fail(f"DAG {dag_id} has a cycle")
+    dag.topological_sort()
 
 
 @pytest.mark.parametrize("dag_id", EXPECTED_DAGS.keys())

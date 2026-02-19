@@ -53,9 +53,11 @@ def test_dag_has_correct_tasks(dag):
         "sense_new_files",
         "validate_bronze",
         "build_silver",
+        "quality_check_silver",
         "build_gold_dimensions",
         "build_gold_facts",
         "build_aggregations",
+        "quality_check_gold",
         "validate_gold",
         "notify_completion",
     }
@@ -63,12 +65,12 @@ def test_dag_has_correct_tasks(dag):
 
 
 def test_dag_task_count(dag):
-    assert len(dag.tasks) == 8
+    assert len(dag.tasks) == 10
 
 
 def test_dag_dependencies_silver_fans_out(dag):
-    silver = dag.get_task("build_silver")
-    downstream_ids = {t.task_id for t in silver.downstream_list}
+    check_silver = dag.get_task("quality_check_silver")
+    downstream_ids = {t.task_id for t in check_silver.downstream_list}
     assert downstream_ids == {"build_gold_dimensions", "build_gold_facts"}
 
 
@@ -88,19 +90,17 @@ def test_dag_linear_chain_sense_to_silver(dag):
 
 def test_dag_linear_chain_aggs_to_notify(dag):
     aggs = dag.get_task("build_aggregations")
-    assert {t.task_id for t in aggs.downstream_list} == {"validate_gold"}
+    assert {t.task_id for t in aggs.downstream_list} == {"quality_check_gold"}
+
+    check_gold = dag.get_task("quality_check_gold")
+    assert {t.task_id for t in check_gold.downstream_list} == {"validate_gold"}
 
     validate = dag.get_task("validate_gold")
     assert {t.task_id for t in validate.downstream_list} == {"notify_completion"}
 
 
 def test_dag_no_cycles(dag):
-    from airflow.exceptions import AirflowDagCycleException
-
-    try:
-        dag.test_cycle()
-    except AirflowDagCycleException:
-        pytest.fail("DAG has a cycle")
+    dag.topological_sort()
 
 
 def test_dag_default_args(dag):
