@@ -2,6 +2,7 @@
 # Triggered on push to main when cloud_functions/ changes.
 # Uses Workload Identity Federation (no service account keys).
 # Deploys each changed Cloud Function to GCP.
+# Requires WIF_PROVIDER and GCP_SA_EMAIL secrets to be configured.
 
 name: Deploy Cloud Functions
 
@@ -21,6 +22,7 @@ env:
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
+    if: ${{ vars.ENABLE_GCP_DEPLOY == 'true' }}
     outputs:
       csv_processor: ${{ steps.changes.outputs.csv_processor }}
       pg_reference_extractor: ${{ steps.changes.outputs.pg_reference_extractor }}

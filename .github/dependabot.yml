@@ -11,9 +11,18 @@ updates:
       prefix: "chore(deps)"
 
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/airflow"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "docker"
+    directory: "/superset"
+    schedule:
+      interval: "monthly"
     labels:
       - "dependencies"
     commit-message:
@@ -29,9 +38,54 @@ updates:
       prefix: "chore(ci)"
 
   - package-ecosystem: "terraform"
-    directory: "/infra"
+    directory: "/infra/modules/bigquery"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "terraform"
+    directory: "/infra/modules/cloud-functions"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "terraform"
+    directory: "/infra/modules/gcs"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "terraform"
+    directory: "/infra/modules/iam"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "terraform"
+    directory: "/infra/modules/secret-manager"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "terraform"
+    directory: "/infra/modules/cloud-scheduler"
+    schedule:
+      interval: "monthly"
     labels:
       - "dependencies"
     commit-message:
