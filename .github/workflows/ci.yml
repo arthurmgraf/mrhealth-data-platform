@@ -112,6 +112,13 @@ jobs:
           echo "MRHEALTH_CONFIG_PATH=$PWD/config/project_config.yaml" >> $GITHUB_ENV
           echo "MRHEALTH_SQL_PATH=$PWD/sql" >> $GITHUB_ENV
           echo "AIRFLOW_HOME=/tmp/airflow" >> $GITHUB_ENV
+          echo "AIRFLOW__CORE__LOAD_EXAMPLES=false" >> $GITHUB_ENV
+          echo "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////tmp/airflow/airflow.db" >> $GITHUB_ENV
+
+      - name: Initialize Airflow DB
+        run: |
+          mkdir -p /tmp/airflow
+          airflow db migrate
 
       - name: Run unit tests
         run: >
