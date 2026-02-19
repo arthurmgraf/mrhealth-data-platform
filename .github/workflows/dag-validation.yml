@@ -41,6 +41,7 @@ jobs:
           echo "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:///$PWD/airflow_home/airflow.db" >> $GITHUB_ENV
           echo "MRHEALTH_CONFIG_PATH=$PWD/config/project_config.yaml" >> $GITHUB_ENV
           echo "MRHEALTH_SQL_PATH=$PWD/sql" >> $GITHUB_ENV
+          echo "PYTHONPATH=$PWD/plugins:$PYTHONPATH" >> $GITHUB_ENV
 
       - name: Initialize Airflow DB
         run: |

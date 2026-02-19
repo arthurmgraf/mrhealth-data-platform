@@ -116,6 +116,7 @@ jobs:
           echo "AIRFLOW_HOME=/tmp/airflow" >> $GITHUB_ENV
           echo "AIRFLOW__CORE__LOAD_EXAMPLES=false" >> $GITHUB_ENV
           echo "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////tmp/airflow/airflow.db" >> $GITHUB_ENV
+          echo "PYTHONPATH=$PWD/plugins:$PYTHONPATH" >> $GITHUB_ENV
 
       - name: Initialize Airflow DB
         run: |
