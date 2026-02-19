@@ -3,6 +3,7 @@ MR. Health -- Apache Superset Configuration
 =============================================
 Custom configuration for local development with BigQuery backend.
 """
+
 import os
 
 SECRET_KEY = os.environ.get(

@@ -2,6 +2,7 @@
 Unit tests for the DataQualityChecker class.
 Uses mocked BigQuery client to test all 6 quality checks.
 """
+
 from __future__ import annotations
 
 from datetime import date
@@ -31,7 +32,12 @@ def checker(mock_bq_client):
 def _mock_query_result(client, rows):
     """Helper to mock BigQuery query results."""
     job = MagicMock()
-    job.result.return_value = [MagicMock(**{k: v for k, v in row.items()}, **{"__getitem__": lambda self, k: getattr(self, k)}) for row in rows]
+    job.result.return_value = [
+        MagicMock(
+            **{k: v for k, v in row.items()}, **{"__getitem__": lambda self, k: getattr(self, k)}
+        )
+        for row in rows
+    ]
     # Use dict-based rows
     mock_rows = []
     for row in rows:
@@ -47,18 +53,28 @@ def _mock_query_result(client, rows):
 class TestDataQualityResult:
     def test_passed_property(self):
         result = DataQualityResult(
-            check_name="test", check_category="test", layer="gold",
-            table_name="t", check_sql="", result="pass",
-            expected_value="", actual_value="",
+            check_name="test",
+            check_category="test",
+            layer="gold",
+            table_name="t",
+            check_sql="",
+            result="pass",
+            expected_value="",
+            actual_value="",
         )
         assert result.passed is True
         assert result.failed is False
 
     def test_failed_property(self):
         result = DataQualityResult(
-            check_name="test", check_category="test", layer="gold",
-            table_name="t", check_sql="", result="fail",
-            expected_value="", actual_value="",
+            check_name="test",
+            check_category="test",
+            layer="gold",
+            table_name="t",
+            check_sql="",
+            result="fail",
+            expected_value="",
+            actual_value="",
         )
         assert result.passed is False
         assert result.failed is True
@@ -97,17 +113,23 @@ class TestCheckCompleteness:
 
 class TestCheckAccuracy:
     def test_accuracy_pass(self, checker, mock_bq_client):
-        _mock_query_result(mock_bq_client, [{"silver_total": 1000.0, "gold_total": 1000.0, "diff": 0.0}])
+        _mock_query_result(
+            mock_bq_client, [{"silver_total": 1000.0, "gold_total": 1000.0, "diff": 0.0}]
+        )
         result = checker.check_accuracy()
         assert result.result == "pass"
 
     def test_accuracy_warn(self, checker, mock_bq_client):
-        _mock_query_result(mock_bq_client, [{"silver_total": 1000.0, "gold_total": 999.5, "diff": 0.5}])
+        _mock_query_result(
+            mock_bq_client, [{"silver_total": 1000.0, "gold_total": 999.5, "diff": 0.5}]
+        )
         result = checker.check_accuracy()
         assert result.result == "warn"
 
     def test_accuracy_fail(self, checker, mock_bq_client):
-        _mock_query_result(mock_bq_client, [{"silver_total": 1000.0, "gold_total": 990.0, "diff": 10.0}])
+        _mock_query_result(
+            mock_bq_client, [{"silver_total": 1000.0, "gold_total": 990.0, "diff": 10.0}]
+        )
         result = checker.check_accuracy()
         assert result.result == "fail"
 
@@ -138,18 +160,32 @@ class TestCheckReferentialIntegrity:
 
 class TestCheckVolumeAnomaly:
     def test_volume_pass_normal(self, checker, mock_bq_client):
-        _mock_query_result(mock_bq_client, [{
-            "avg_orders": 100.0, "std_orders": 10.0,
-            "today_orders": 105, "z_score": 0.5,
-        }])
+        _mock_query_result(
+            mock_bq_client,
+            [
+                {
+                    "avg_orders": 100.0,
+                    "std_orders": 10.0,
+                    "today_orders": 105,
+                    "z_score": 0.5,
+                }
+            ],
+        )
         result = checker.check_volume_anomaly()
         assert result.result == "pass"
 
     def test_volume_warn_anomaly(self, checker, mock_bq_client):
-        _mock_query_result(mock_bq_client, [{
-            "avg_orders": 100.0, "std_orders": 10.0,
-            "today_orders": 150, "z_score": 5.0,
-        }])
+        _mock_query_result(
+            mock_bq_client,
+            [
+                {
+                    "avg_orders": 100.0,
+                    "std_orders": 10.0,
+                    "today_orders": 150,
+                    "z_score": 5.0,
+                }
+            ],
+        )
         result = checker.check_volume_anomaly()
         assert result.result == "warn"
 
@@ -180,9 +216,14 @@ class TestSaveResults:
     def test_save_results_success(self, checker, mock_bq_client):
         checker.results = [
             DataQualityResult(
-                check_name="test", check_category="test", layer="gold",
-                table_name="t", check_sql="SELECT 1", result="pass",
-                expected_value="1", actual_value="1",
+                check_name="test",
+                check_category="test",
+                layer="gold",
+                table_name="t",
+                check_sql="SELECT 1",
+                result="pass",
+                expected_value="1",
+                actual_value="1",
             )
         ]
         mock_bq_client.insert_rows_json.return_value = []

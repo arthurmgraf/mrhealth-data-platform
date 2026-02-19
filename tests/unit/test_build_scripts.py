@@ -3,12 +3,10 @@
 Tests the main() function and helper functions of each build script
 with mocked BigQuery client.
 """
+
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch, call
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 
 class TestBuildSilverLayer:

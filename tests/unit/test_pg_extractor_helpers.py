@@ -3,41 +3,70 @@
 Tests SSH key loading, GCS upload, secret retrieval, and retry logic.
 All external dependencies are mocked.
 """
+
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch, call
-import io
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 
 class TestLoadSshKey:
     def test_loads_rsa_key(self):
+        import paramiko
+
         from cloud_functions.pg_reference_extractor.main import load_ssh_key
 
         mock_key = MagicMock()
-        with patch("cloud_functions.pg_reference_extractor.main.paramiko.Ed25519Key.from_private_key", side_effect=Exception):
-            with patch("cloud_functions.pg_reference_extractor.main.paramiko.RSAKey.from_private_key", return_value=mock_key):
-                result = load_ssh_key("-----BEGIN RSA PRIVATE KEY-----\nfake\n-----END RSA PRIVATE KEY-----")
-                assert result is mock_key
+        with (
+            patch(
+                "cloud_functions.pg_reference_extractor.main.paramiko.Ed25519Key.from_private_key",
+                side_effect=paramiko.SSHException,
+            ),
+            patch(
+                "cloud_functions.pg_reference_extractor.main.paramiko.RSAKey.from_private_key",
+                return_value=mock_key,
+            ),
+        ):
+            result = load_ssh_key(
+                "-----BEGIN RSA PRIVATE KEY-----\nfake\n-----END RSA PRIVATE KEY-----"
+            )
+            assert result is mock_key
 
     def test_loads_ed25519_key(self):
         from cloud_functions.pg_reference_extractor.main import load_ssh_key
 
         mock_key = MagicMock()
-        with patch("cloud_functions.pg_reference_extractor.main.paramiko.Ed25519Key.from_private_key", return_value=mock_key):
-            result = load_ssh_key("-----BEGIN OPENSSH PRIVATE KEY-----\nfake\n-----END OPENSSH PRIVATE KEY-----")
+        with patch(
+            "cloud_functions.pg_reference_extractor.main.paramiko.Ed25519Key.from_private_key",
+            return_value=mock_key,
+        ):
+            result = load_ssh_key(
+                "-----BEGIN OPENSSH PRIVATE KEY-----\nfake\n-----END OPENSSH PRIVATE KEY-----"
+            )
             assert result is mock_key
 
     def test_unsupported_key_raises(self):
-        from cloud_functions.pg_reference_extractor.main import load_ssh_key
         import paramiko
 
-        with patch("cloud_functions.pg_reference_extractor.main.paramiko.Ed25519Key.from_private_key", side_effect=paramiko.SSHException):
-            with patch("cloud_functions.pg_reference_extractor.main.paramiko.RSAKey.from_private_key", side_effect=paramiko.SSHException):
-                with patch("cloud_functions.pg_reference_extractor.main.paramiko.ECDSAKey.from_private_key", side_effect=paramiko.SSHException):
-                    with pytest.raises(ValueError, match="Unsupported SSH key type"):
-                        load_ssh_key("bad-key")
+        from cloud_functions.pg_reference_extractor.main import load_ssh_key
+
+        with (
+            patch(
+                "cloud_functions.pg_reference_extractor.main.paramiko.Ed25519Key.from_private_key",
+                side_effect=paramiko.SSHException,
+            ),
+            patch(
+                "cloud_functions.pg_reference_extractor.main.paramiko.RSAKey.from_private_key",
+                side_effect=paramiko.SSHException,
+            ),
+            patch(
+                "cloud_functions.pg_reference_extractor.main.paramiko.ECDSAKey.from_private_key",
+                side_effect=paramiko.SSHException,
+            ),
+            pytest.raises(ValueError, match="Unsupported SSH key type"),
+        ):
+            load_ssh_key("bad-key")
 
 
 class TestUploadToGcs:

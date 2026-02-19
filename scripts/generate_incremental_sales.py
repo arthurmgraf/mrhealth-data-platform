@@ -16,9 +16,8 @@ Date: February 2026
 """
 
 import argparse
-import sys
-import os
 import random
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -28,9 +27,8 @@ from faker import Faker
 # Enable importing from the same directory (scripts/)
 sys.path.insert(0, str(Path(__file__).parent))
 from generate_fake_sales import (
-    PRODUCT_CATALOG,
-    generate_unit_list,
     generate_orders_for_unit_day,
+    generate_unit_list,
 )
 
 # ============================================================================
@@ -38,12 +36,12 @@ from generate_fake_sales import (
 # ============================================================================
 
 WINDOW_VOLUMES = {
-    (10, 12): (1, 2),   # Morning ramp-up (brunch)
-    (12, 14): (3, 5),   # Lunch peak
-    (14, 16): (1, 2),   # Afternoon lull
-    (16, 18): (2, 3),   # Late afternoon
-    (18, 20): (4, 6),   # Dinner peak
-    (20, 22): (2, 3),   # Evening wind-down
+    (10, 12): (1, 2),  # Morning ramp-up (brunch)
+    (12, 14): (3, 5),  # Lunch peak
+    (14, 16): (1, 2),  # Afternoon lull
+    (16, 18): (2, 3),  # Late afternoon
+    (18, 20): (4, 6),  # Dinner peak
+    (20, 22): (2, 3),  # Evening wind-down
 }
 
 
@@ -95,9 +93,15 @@ Examples:
     parser.add_argument("--window-start", required=True, help="Window start time (HH:MM)")
     parser.add_argument("--window-end", required=True, help="Window end time (HH:MM)")
     parser.add_argument("--date", default=None, help="Date (YYYY-MM-DD, default: today)")
-    parser.add_argument("--units", type=int, default=50, help="Number of restaurant units (default: 50)")
-    parser.add_argument("--output-dir", type=str, default="output", help="Output directory (default: output)")
-    parser.add_argument("--upload", action="store_true", help="Upload generated files to GCS after generation")
+    parser.add_argument(
+        "--units", type=int, default=50, help="Number of restaurant units (default: 50)"
+    )
+    parser.add_argument(
+        "--output-dir", type=str, default="output", help="Output directory (default: output)"
+    )
+    parser.add_argument(
+        "--upload", action="store_true", help="Upload generated files to GCS after generation"
+    )
     parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducibility")
     return parser.parse_args()
 
@@ -147,8 +151,7 @@ def main() -> int:
 
     for unit in units:
         unit_dir = (
-            output_dir / "csv_sales" / year / month / day
-            / f"unit_{unit['id']:03d}" / window_tag
+            output_dir / "csv_sales" / year / month / day / f"unit_{unit['id']:03d}" / window_tag
         )
         unit_dir.mkdir(parents=True, exist_ok=True)
 
@@ -160,9 +163,7 @@ def main() -> int:
             max_orders=max_orders,
         )
 
-        pd.DataFrame(orders).to_csv(
-            unit_dir / "pedido.csv", index=False, sep=";", encoding="utf-8"
-        )
+        pd.DataFrame(orders).to_csv(unit_dir / "pedido.csv", index=False, sep=";", encoding="utf-8")
         pd.DataFrame(items).to_csv(
             unit_dir / "item_pedido.csv", index=False, sep=";", encoding="utf-8"
         )
@@ -176,6 +177,7 @@ def main() -> int:
     # Upload to GCS if requested
     if args.upload:
         import yaml
+
         config_path = Path("config/project_config.yaml")
         with open(config_path) as f:
             config = yaml.safe_load(f)
@@ -185,7 +187,7 @@ def main() -> int:
         day_dir = output_dir / "csv_sales" / year / month / day
         uploaded = upload_to_gcs(day_dir, bucket, f"raw/csv_sales/{year}/{month}/{day}")
         print(f"\n[UPLOADED] {uploaded} files")
-        print(f"  csv-processor Cloud Function will trigger automatically for each file")
+        print("  csv-processor Cloud Function will trigger automatically for each file")
 
     return 0
 

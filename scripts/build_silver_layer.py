@@ -21,7 +21,7 @@ from pathlib import Path
 
 from google.cloud import bigquery
 
-from scripts.utils.config import load_config, get_project_id
+from scripts.utils.config import get_project_id, load_config
 from scripts.utils.sql_executor import execute_sql_file
 
 
@@ -116,7 +116,10 @@ def main() -> int:
 
     sql_dir = Path("sql/silver")
     sql_files = [
-        (sql_dir / "01_reference_tables.sql", "Reference tables (products, units, states, countries)"),
+        (
+            sql_dir / "01_reference_tables.sql",
+            "Reference tables (products, units, states, countries)",
+        ),
         (sql_dir / "02_orders.sql", "Orders with date enrichment and normalization"),
         (sql_dir / "03_order_items.sql", "Order items with calculated totals"),
     ]

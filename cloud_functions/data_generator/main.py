@@ -17,17 +17,15 @@ Author: Arthur Graf
 Date: February 2026
 """
 
-import functions_framework
 import os
-import io
-import uuid
 import random
-from datetime import datetime, timezone, timedelta
+import uuid
+from datetime import datetime, timedelta, timezone
 
+import functions_framework
 import pandas as pd
 from faker import Faker
 from google.cloud import storage
-
 
 # ============================================================================
 # CONFIGURATION
@@ -42,13 +40,13 @@ BRT = timezone(timedelta(hours=-3))
 # Business window -> (min_orders, max_orders) per unit
 # Key = hour when Cloud Scheduler fires; window covers [hour, hour+2)
 WINDOW_VOLUMES = {
-    10: (1, 2),   # 10-12: Morning ramp-up (brunch)
-    12: (3, 5),   # 12-14: Lunch peak
-    14: (1, 2),   # 14-16: Afternoon lull
-    16: (2, 3),   # 16-18: Late afternoon
-    18: (4, 6),   # 18-20: Dinner peak
-    20: (2, 3),   # 20-22: Evening wind-down
-    22: (2, 3),   # 22-00: Late evening
+    10: (1, 2),  # 10-12: Morning ramp-up (brunch)
+    12: (3, 5),  # 12-14: Lunch peak
+    14: (1, 2),  # 14-16: Afternoon lull
+    16: (2, 3),  # 16-18: Late afternoon
+    18: (4, 6),  # 18-20: Dinner peak
+    20: (2, 3),  # 20-22: Evening wind-down
+    22: (2, 3),  # 22-00: Late evening
 }
 
 
@@ -96,33 +94,88 @@ ORDER_TYPE_CHOICES = ["Loja Online", "Loja Fisica"]
 ORDER_TYPE_WEIGHTS = [0.60, 0.40]
 
 OBSERVATIONS = [
-    "Sem gluten", "Extra proteina", "Sem lactose", "Sem acucar",
-    "Ponto especial", "Dobro de molho", "Sem cebola", "Bem passado",
-    "Ao ponto", "Sem sal", "Porcao extra", "Sem pimenta",
-    "Com molho a parte", "Vegano", "Sem conservantes",
+    "Sem gluten",
+    "Extra proteina",
+    "Sem lactose",
+    "Sem acucar",
+    "Ponto especial",
+    "Dobro de molho",
+    "Sem cebola",
+    "Bem passado",
+    "Ao ponto",
+    "Sem sal",
+    "Porcao extra",
+    "Sem pimenta",
+    "Com molho a parte",
+    "Vegano",
+    "Sem conservantes",
 ]
 
 # Southern Brazil state -> city mapping
 CITIES_BY_STATE = {
-    1: ["Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas", "Santa Maria",
-        "Gravatai", "Viamao", "Novo Hamburgo", "Sao Leopoldo", "Rio Grande",
-        "Alvorada", "Passo Fundo", "Sapucaia do Sul", "Uruguaiana",
-        "Santa Cruz do Sul", "Cachoeirinha", "Bage", "Bento Goncalves",
-        "Erechim", "Guaiba"],
-    2: ["Florianopolis", "Joinville", "Blumenau", "Sao Jose", "Chapeco",
-        "Criciuma", "Itajai", "Jaragua do Sul", "Lages", "Palhoca",
-        "Balneario Camboriu", "Brusque", "Tubarao", "Sao Bento do Sul",
-        "Cacador"],
-    3: ["Curitiba", "Londrina", "Maringa", "Ponta Grossa", "Cascavel",
-        "Sao Jose dos Pinhais", "Foz do Iguacu", "Colombo", "Guarapuava",
-        "Paranagua", "Araucaria", "Toledo", "Apucarana", "Pinhais",
-        "Campo Largo"],
+    1: [
+        "Porto Alegre",
+        "Caxias do Sul",
+        "Pelotas",
+        "Canoas",
+        "Santa Maria",
+        "Gravatai",
+        "Viamao",
+        "Novo Hamburgo",
+        "Sao Leopoldo",
+        "Rio Grande",
+        "Alvorada",
+        "Passo Fundo",
+        "Sapucaia do Sul",
+        "Uruguaiana",
+        "Santa Cruz do Sul",
+        "Cachoeirinha",
+        "Bage",
+        "Bento Goncalves",
+        "Erechim",
+        "Guaiba",
+    ],
+    2: [
+        "Florianopolis",
+        "Joinville",
+        "Blumenau",
+        "Sao Jose",
+        "Chapeco",
+        "Criciuma",
+        "Itajai",
+        "Jaragua do Sul",
+        "Lages",
+        "Palhoca",
+        "Balneario Camboriu",
+        "Brusque",
+        "Tubarao",
+        "Sao Bento do Sul",
+        "Cacador",
+    ],
+    3: [
+        "Curitiba",
+        "Londrina",
+        "Maringa",
+        "Ponta Grossa",
+        "Cascavel",
+        "Sao Jose dos Pinhais",
+        "Foz do Iguacu",
+        "Colombo",
+        "Guarapuava",
+        "Paranagua",
+        "Araucaria",
+        "Toledo",
+        "Apucarana",
+        "Pinhais",
+        "Campo Largo",
+    ],
 }
 
 
 # ============================================================================
 # GENERATION LOGIC (mirrors generate_fake_sales.py -- see ADR-1)
 # ============================================================================
+
 
 def generate_unit_list(num_units: int) -> list[dict]:
     """Generate restaurant units distributed across southern Brazil."""
@@ -136,26 +189,33 @@ def generate_unit_list(num_units: int) -> list[dict]:
             if unit_id > num_units:
                 break
             city = cities[i % len(cities)]
-            units.append({
-                "id": unit_id,
-                "name": f"Mr. Health - {city}",
-                "state_id": state_id,
-            })
+            units.append(
+                {
+                    "id": unit_id,
+                    "name": f"Mr. Health - {city}",
+                    "state_id": state_id,
+                }
+            )
             unit_id += 1
     while len(units) < num_units:
         state_id = random.choice([1, 2, 3])
         city = random.choice(CITIES_BY_STATE[state_id])
-        units.append({
-            "id": len(units) + 1,
-            "name": f"Mr. Health - {city} II",
-            "state_id": state_id,
-        })
+        units.append(
+            {
+                "id": len(units) + 1,
+                "name": f"Mr. Health - {city} II",
+                "state_id": state_id,
+            }
+        )
     return units[:num_units]
 
 
 def generate_orders_for_unit(
-    fake: Faker, unit_id: int, date: datetime,
-    min_orders: int, max_orders: int,
+    fake: Faker,
+    unit_id: int,
+    date: datetime,
+    min_orders: int,
+    max_orders: int,
 ) -> tuple[list[dict], list[dict]]:
     """Generate orders and order items for one unit in one window."""
     num_orders = random.randint(min_orders, max_orders)
@@ -173,36 +233,41 @@ def generate_orders_for_unit(
             item_value = product["price"]
             total_item = round(qty * item_value, 2)
             total_items_value += total_item
-            items.append({
-                "Id_Pedido": order_id,
-                "Id_Item_Pedido": str(uuid.uuid4()),
-                "Id_Produto": product["id"],
-                "Qtd": qty,
-                "Vlr_Item": f"{item_value:.2f}",
-                "Observacao": random.choice(OBSERVATIONS) if random.random() < 0.30 else "",
-            })
+            items.append(
+                {
+                    "Id_Pedido": order_id,
+                    "Id_Item_Pedido": str(uuid.uuid4()),
+                    "Id_Produto": product["id"],
+                    "Qtd": qty,
+                    "Vlr_Item": f"{item_value:.2f}",
+                    "Observacao": random.choice(OBSERVATIONS) if random.random() < 0.30 else "",
+                }
+            )
         if order_type == "Loja Online":
             delivery_fee = round(random.uniform(5.00, 25.00), 2)
             delivery_address = fake.address().replace("\n", ", ")
         else:
             delivery_fee = 0.00
             delivery_address = ""
-        orders.append({
-            "Id_Unidade": unit_id,
-            "Id_Pedido": order_id,
-            "Tipo_Pedido": order_type,
-            "Data_Pedido": date.strftime("%Y-%m-%d"),
-            "Vlr_Pedido": f"{round(total_items_value + delivery_fee, 2):.2f}",
-            "Endereco_Entrega": delivery_address,
-            "Taxa_Entrega": f"{delivery_fee:.2f}",
-            "Status": status,
-        })
+        orders.append(
+            {
+                "Id_Unidade": unit_id,
+                "Id_Pedido": order_id,
+                "Tipo_Pedido": order_type,
+                "Data_Pedido": date.strftime("%Y-%m-%d"),
+                "Vlr_Pedido": f"{round(total_items_value + delivery_fee, 2):.2f}",
+                "Endereco_Entrega": delivery_address,
+                "Taxa_Entrega": f"{delivery_fee:.2f}",
+                "Status": status,
+            }
+        )
     return orders, items
 
 
 # ============================================================================
 # GCS UPLOAD
 # ============================================================================
+
 
 def upload_csv_to_gcs(bucket, blob_name: str, df: pd.DataFrame) -> None:
     """Upload a DataFrame as CSV directly to GCS (no local file)."""
@@ -214,6 +279,7 @@ def upload_csv_to_gcs(bucket, blob_name: str, df: pd.DataFrame) -> None:
 # ============================================================================
 # CLOUD FUNCTION ENTRY POINT
 # ============================================================================
+
 
 @functions_framework.http
 def generate_data(request):

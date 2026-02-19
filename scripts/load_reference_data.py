@@ -19,16 +19,16 @@ Date: January 2026
 
 import argparse
 import sys
-import yaml
 from pathlib import Path
+
+import yaml
 from google.cloud import bigquery
-from datetime import datetime
 
 
 def load_config():
     """Load project configuration from YAML."""
     config_path = Path("config/project_config.yaml")
-    with open(config_path, 'r') as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
     return config
 
@@ -44,9 +44,9 @@ TABLE_MAPPING = {
 
 def load_reference_tables(project_id, bucket_name, dataset_id="mrhealth_bronze"):
     """Load reference CSVs from GCS into BigQuery Bronze tables."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Loading Reference Data into BigQuery Bronze")
-    print("="*60)
+    print("=" * 60)
 
     client = bigquery.Client(project=project_id)
     gcs_prefix = "raw/reference_data"
@@ -90,9 +90,9 @@ def load_reference_tables(project_id, bucket_name, dataset_id="mrhealth_bronze")
                 """
                 alter_job = client.query(alter_query)
                 alter_job.result()
-                print(f"  [OK] Added _ingest_timestamp column")
-            except Exception as alter_error:
-                print(f"  [INFO] _ingest_timestamp column already exists or cannot be added")
+                print("  [OK] Added _ingest_timestamp column")
+            except Exception:
+                print("  [INFO] _ingest_timestamp column already exists or cannot be added")
 
             loaded_count += 1
 
@@ -100,26 +100,26 @@ def load_reference_tables(project_id, bucket_name, dataset_id="mrhealth_bronze")
             print(f"  [ERROR] Failed to load {csv_name}: {e}")
             continue
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("LOAD SUMMARY")
-    print("="*60)
+    print("=" * 60)
     print(f"  Tables loaded:  {loaded_count}/{len(TABLE_MAPPING)}")
     print(f"  Total rows:     {total_rows}")
     print(f"  Dataset:        {dataset_id}")
-    print("="*60)
+    print("=" * 60)
 
     return loaded_count == len(TABLE_MAPPING)
 
 
 def verify_reference_data(project_id, dataset_id="mrhealth_bronze"):
     """Verify reference data row counts in BigQuery."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Verification - Reference Data Row Counts")
-    print("="*60)
+    print("=" * 60)
 
     client = bigquery.Client(project=project_id)
 
-    for csv_name, table_name in TABLE_MAPPING.items():
+    for _csv_name, table_name in TABLE_MAPPING.items():
         table_id = f"{project_id}.{dataset_id}.{table_name}"
 
         try:
@@ -130,44 +130,42 @@ def verify_reference_data(project_id, dataset_id="mrhealth_bronze"):
         except Exception as e:
             print(f"  {table_name:12} [ERROR] {e}")
 
-    print("="*60)
+    print("=" * 60)
 
 
 def main():
     # Load config
     try:
         config = load_config()
-        default_project = config['project']['id']
-        default_bucket = config['storage']['bucket']
-        default_dataset = config['bigquery']['datasets']['bronze']
+        default_project = config["project"]["id"]
+        default_bucket = config["storage"]["bucket"]
+        default_dataset = config["bigquery"]["datasets"]["bronze"]
     except Exception as e:
         print(f"[ERROR] Failed to load config: {e}")
         return 1
 
-    parser = argparse.ArgumentParser(
-        description="Load reference data from GCS to BigQuery Bronze"
-    )
+    parser = argparse.ArgumentParser(description="Load reference data from GCS to BigQuery Bronze")
     parser.add_argument(
         "--project",
         default=default_project,
-        help=f"GCP project ID (default from config: {default_project})"
+        help=f"GCP project ID (default from config: {default_project})",
     )
     parser.add_argument(
         "--bucket",
         default=default_bucket,
-        help=f"GCS bucket name (default from config: {default_bucket})"
+        help=f"GCS bucket name (default from config: {default_bucket})",
     )
     parser.add_argument(
         "--dataset",
         default=default_dataset,
-        help=f"BigQuery dataset (default from config: {default_dataset})"
+        help=f"BigQuery dataset (default from config: {default_dataset})",
     )
 
     args = parser.parse_args()
 
-    print("="*60)
+    print("=" * 60)
     print("MR. HEALTH Data Platform -- Load Reference Data")
-    print("="*60)
+    print("=" * 60)
     print(f"Project: {args.project}")
     print(f"Bucket:  gs://{args.bucket}/")
     print(f"Dataset: {args.dataset}")

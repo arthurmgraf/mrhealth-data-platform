@@ -19,12 +19,14 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("airflow.models", reason="Airflow not available (requires Python 3.11)")
+
 # Point config/sql paths to the project root before importing the DAG
 _project_root = Path(__file__).resolve().parent.parent.parent
 os.environ.setdefault("MRHEALTH_CONFIG_PATH", str(_project_root / "config" / "project_config.yaml"))
 os.environ.setdefault("MRHEALTH_SQL_PATH", str(_project_root / "sql"))
 
-from airflow.models import DagBag
+from airflow.models import DagBag  # noqa: E402
 
 
 @pytest.fixture(scope="module")
@@ -94,6 +96,7 @@ def test_dag_linear_chain_aggs_to_notify(dag):
 
 def test_dag_no_cycles(dag):
     from airflow.exceptions import AirflowDagCycleException
+
     try:
         dag.test_cycle()
     except AirflowDagCycleException:

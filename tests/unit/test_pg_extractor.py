@@ -5,9 +5,8 @@ Testa a lógica de extração e formatação CSV sem dependências externas.
 Todos os acessos a PostgreSQL, SSH e GCS são mockados.
 """
 
-import pytest
-import sys
 import os
+import sys
 
 sys.path.insert(
     0,
@@ -20,7 +19,7 @@ sys.path.insert(
     ),
 )
 
-from main import extract_table, TABLES
+from main import TABLES, extract_table
 
 
 class MockCursor:
@@ -35,7 +34,6 @@ class MockCursor:
 
 
 class TestExtractTable:
-
     def test_produto_csv_format(self):
         cursor = MockCursor([(1, "Bowl de Acai Premium"), (2, "Salada Caesar Grelhada")])
         csv_content, row_count = extract_table(cursor, TABLES["produto"])
@@ -98,7 +96,6 @@ class TestExtractTable:
 
 
 class TestTableConfig:
-
     def test_all_four_tables_configured(self):
         assert set(TABLES.keys()) == {"produto", "unidade", "estado", "pais"}
 
@@ -139,7 +136,6 @@ class TestTableConfig:
 
 
 class TestCSVConsistency:
-
     def test_produto_header_matches_query_columns(self):
         header_cols = TABLES["produto"]["header"].split(";")
         assert header_cols == ["Id_Produto", "Nome_Produto"]

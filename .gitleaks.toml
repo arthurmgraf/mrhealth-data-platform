@@ -1,0 +1,65 @@
+# Gitleaks Configuration -- MR. HEALTH Data Platform
+# https://github.com/gitleaks/gitleaks
+
+title = "mrhealth-data-platform gitleaks config"
+
+[allowlist]
+  description = "Global allowlist"
+  paths = [
+    '''\.claude/''',
+    '''\.git/''',
+    '''node_modules/''',
+    '''__pycache__/''',
+    '''\.venv/''',
+  ]
+
+[[rules]]
+  id = "gcp-service-account-key"
+  description = "GCP Service Account Key"
+  regex = '''"type"\s*:\s*"service_account"'''
+  tags = ["gcp", "credentials"]
+
+[[rules]]
+  id = "gcp-project-id-hardcoded"
+  description = "Hardcoded GCP Project ID (use env vars)"
+  regex = '''sixth-foundry-\d{6}-[a-z0-9]{2}'''
+  tags = ["gcp", "config"]
+  [rules.allowlist]
+    paths = [
+      '''config/project_config\.yaml''',
+      '''docs/''',
+      '''ROADMAP\.md''',
+    ]
+
+[[rules]]
+  id = "k8s-secret-real-value"
+  description = "K8s secret with real value (not placeholder)"
+  regex = '''(?i)(password|secret[-_]?key|api[-_]?key)\s*[:=]\s*[^\s"']{8,}'''
+  tags = ["kubernetes", "secrets"]
+  [rules.allowlist]
+    paths = [
+      '''k8s/secrets\.yaml''',
+      '''docs/''',
+    ]
+    regexes = [
+      '''REPLACE_WITH_''',
+      '''your-.*-here''',
+      '''placeholder''',
+    ]
+
+[[rules]]
+  id = "ssh-private-key"
+  description = "SSH Private Key"
+  regex = '''-----BEGIN (RSA|DSA|EC|OPENSSH) PRIVATE KEY-----'''
+  tags = ["ssh", "credentials"]
+
+[[rules]]
+  id = "generic-api-key"
+  description = "Generic API Key"
+  regex = '''(?i)(api[_-]?key|apikey|api[_-]?secret)\s*[:=]\s*['"][a-zA-Z0-9]{20,}['"]'''
+  tags = ["api", "credentials"]
+  [rules.allowlist]
+    paths = [
+      '''\.mcp\.json''',
+      '''docs/''',
+    ]

@@ -93,10 +93,12 @@ def get_session(base_url: str, username: str, password: str) -> requests.Session
         session.headers.update({"X-CSRFToken": api_csrf})
 
     # Set headers for JSON API calls
-    session.headers.update({
-        "Content-Type": "application/json",
-        "Referer": base_url,
-    })
+    session.headers.update(
+        {
+            "Content-Type": "application/json",
+            "Referer": base_url,
+        }
+    )
 
     return session
 
@@ -141,11 +143,11 @@ def infer_columns_from_sql(sql: str) -> list[dict]:
     import re
 
     # Remove Jinja templates
-    clean_sql = re.sub(r'\{%.*?%\}', '', sql, flags=re.DOTALL)
-    clean_sql = re.sub(r'\{\{.*?\}\}', '', clean_sql, flags=re.DOTALL)
+    clean_sql = re.sub(r"\{%.*?%\}", "", sql, flags=re.DOTALL)
+    clean_sql = re.sub(r"\{\{.*?\}\}", "", clean_sql, flags=re.DOTALL)
 
     # Find SELECT ... FROM
-    match = re.search(r'SELECT\s+(.*?)\s+FROM', clean_sql, re.IGNORECASE | re.DOTALL)
+    match = re.search(r"SELECT\s+(.*?)\s+FROM", clean_sql, re.IGNORECASE | re.DOTALL)
     if not match:
         return []
 
@@ -157,49 +159,54 @@ def infer_columns_from_sql(sql: str) -> list[dict]:
     current = []
     paren_depth = 0
     for char in select_clause:
-        if char == '(':
+        if char == "(":
             paren_depth += 1
-        elif char == ')':
+        elif char == ")":
             paren_depth -= 1
-        elif char == ',' and paren_depth == 0:
-            col_defs.append(''.join(current).strip())
+        elif char == "," and paren_depth == 0:
+            col_defs.append("".join(current).strip())
             current = []
             continue
         current.append(char)
     if current:
-        col_defs.append(''.join(current).strip())
+        col_defs.append("".join(current).strip())
 
     # Parse column definitions
     seen_names = set()
     for col_def in col_defs:
-        if not col_def or col_def == '*':
+        if not col_def or col_def == "*":
             continue
 
         # Check for AS alias
-        as_match = re.search(r'\s+AS\s+(\w+)\s*$', col_def, re.IGNORECASE)
+        as_match = re.search(r"\s+AS\s+(\w+)\s*$", col_def, re.IGNORECASE)
         if as_match:
             col_name = as_match.group(1)
         else:
             # Take last part (after dots, functions, etc.)
-            parts = re.findall(r'\b(\w+)\b', col_def)
+            parts = re.findall(r"\b(\w+)\b", col_def)
             col_name = parts[-1] if parts else None
 
         if col_name and col_name not in seen_names:
             seen_names.add(col_name)
             col_type = "STRING"
-            if any(kw in col_def.upper() for kw in ['SUM(', 'COUNT(', 'AVG(', 'ROUND(']):
+            if any(kw in col_def.upper() for kw in ["SUM(", "COUNT(", "AVG(", "ROUND("]):
                 col_type = "FLOAT"
-            elif any(kw in col_name.lower() for kw in ['_rank', '_id', '_key', '_count', '_orders', '_items']):
+            elif any(
+                kw in col_name.lower()
+                for kw in ["_rank", "_id", "_key", "_count", "_orders", "_items"]
+            ):
                 col_type = "INTEGER"
-            elif any(kw in col_name.lower() for kw in ['_date', '_dttm']):
+            elif any(kw in col_name.lower() for kw in ["_date", "_dttm"]):
                 col_type = "DATE"
 
-            columns.append({
-                "column_name": col_name,
-                "type": col_type,
-                "filterable": True,
-                "groupby": True,
-            })
+            columns.append(
+                {
+                    "column_name": col_name,
+                    "type": col_type,
+                    "filterable": True,
+                    "groupby": True,
+                }
+            )
 
     return columns
 
@@ -210,13 +217,15 @@ def add_columns_to_dataset(
     """Add columns to a dataset via API."""
     formatted_cols = []
     for col in columns:
-        formatted_cols.append({
-            "column_name": col["column_name"],
-            "type": col.get("type", "STRING"),
-            "filterable": col.get("filterable", True),
-            "groupby": col.get("groupby", True),
-            "is_dttm": col.get("type") == "DATE",
-        })
+        formatted_cols.append(
+            {
+                "column_name": col["column_name"],
+                "type": col.get("type", "STRING"),
+                "filterable": col.get("filterable", True),
+                "groupby": col.get("groupby", True),
+                "is_dttm": col.get("type") == "DATE",
+            }
+        )
 
     payload = {"columns": formatted_cols}
     resp = session.put(
@@ -304,113 +313,131 @@ def build_chart_params(viz_type: str, params: dict) -> str:
 
     if viz_type == "big_number_total":
         metric_name = params.get("metric", "value")
-        base.update({
-            "metric": {
-                "expressionType": "SIMPLE",
-                "column": {"column_name": metric_name, "type": "FLOAT"},
-                "aggregate": "MAX",
-                "label": metric_name,
-            },
-            "subheader": params.get("subheader", ""),
-            "y_axis_format": params.get("y_axis_format", "SMART_NUMBER"),
-            "header_font_size": 0.4,
-            "subheader_font_size": 0.15,
-        })
+        base.update(
+            {
+                "metric": {
+                    "expressionType": "SIMPLE",
+                    "column": {"column_name": metric_name, "type": "FLOAT"},
+                    "aggregate": "MAX",
+                    "label": metric_name,
+                },
+                "subheader": params.get("subheader", ""),
+                "y_axis_format": params.get("y_axis_format", "SMART_NUMBER"),
+                "header_font_size": 0.4,
+                "subheader_font_size": 0.15,
+            }
+        )
 
     elif viz_type == "echarts_timeseries_line":
         metrics = []
         for m in params.get("metrics", []):
-            metrics.append({
-                "expressionType": "SIMPLE",
-                "column": {"column_name": m, "type": "FLOAT"},
-                "aggregate": "MAX",
-                "label": m,
-            })
-        base.update({
-            "x_axis": params.get("x_axis", "order_date"),
-            "time_grain_sqla": "P1D",
-            "metrics": metrics,
-            "groupby": [],
-            "rich_tooltip": params.get("rich_tooltip", True),
-            "show_legend": params.get("show_legend", True),
-            "truncate_metric": True,
-            "row_limit": 10000,
-        })
+            metrics.append(
+                {
+                    "expressionType": "SIMPLE",
+                    "column": {"column_name": m, "type": "FLOAT"},
+                    "aggregate": "MAX",
+                    "label": m,
+                }
+            )
+        base.update(
+            {
+                "x_axis": params.get("x_axis", "order_date"),
+                "time_grain_sqla": "P1D",
+                "metrics": metrics,
+                "groupby": [],
+                "rich_tooltip": params.get("rich_tooltip", True),
+                "show_legend": params.get("show_legend", True),
+                "truncate_metric": True,
+                "row_limit": 10000,
+            }
+        )
 
     elif viz_type == "pie":
         metric_name = params.get("metric", "value")
-        base.update({
-            "metric": {
-                "expressionType": "SIMPLE",
-                "column": {"column_name": metric_name, "type": "FLOAT"},
-                "aggregate": "MAX",
-                "label": metric_name,
-            },
-            "groupby": params.get("groupby", []),
-            "show_labels": params.get("show_labels", True),
-            "label_type": params.get("label_type", "key_value_percent"),
-            "innerRadius": params.get("innerRadius", 0),
-            "row_limit": 100,
-        })
+        base.update(
+            {
+                "metric": {
+                    "expressionType": "SIMPLE",
+                    "column": {"column_name": metric_name, "type": "FLOAT"},
+                    "aggregate": "MAX",
+                    "label": metric_name,
+                },
+                "groupby": params.get("groupby", []),
+                "show_labels": params.get("show_labels", True),
+                "label_type": params.get("label_type", "key_value_percent"),
+                "innerRadius": params.get("innerRadius", 0),
+                "row_limit": 100,
+            }
+        )
 
     elif viz_type == "dist_bar":
         metrics = []
         for m in params.get("metrics", []):
-            metrics.append({
-                "expressionType": "SIMPLE",
-                "column": {"column_name": m, "type": "FLOAT"},
-                "aggregate": "MAX",
-                "label": m,
-            })
-        base.update({
-            "metrics": metrics,
-            "groupby": params.get("groupby", []),
-            "show_bar_value": params.get("show_bar_value", True),
-            "row_limit": 50,
-            "order_desc": True,
-        })
+            metrics.append(
+                {
+                    "expressionType": "SIMPLE",
+                    "column": {"column_name": m, "type": "FLOAT"},
+                    "aggregate": "MAX",
+                    "label": m,
+                }
+            )
+        base.update(
+            {
+                "metrics": metrics,
+                "groupby": params.get("groupby", []),
+                "show_bar_value": params.get("show_bar_value", True),
+                "row_limit": 50,
+                "order_desc": True,
+            }
+        )
 
     elif viz_type == "table":
-        base.update({
-            "all_columns": params.get("all_columns", []),
-            "order_by_cols": params.get("order_by_cols", []),
-            "page_length": params.get("page_length", 50),
-            "include_search": True,
-            "row_limit": 1000,
-        })
+        base.update(
+            {
+                "all_columns": params.get("all_columns", []),
+                "order_by_cols": params.get("order_by_cols", []),
+                "page_length": params.get("page_length", 50),
+                "include_search": True,
+                "row_limit": 1000,
+            }
+        )
 
     elif viz_type == "histogram":
-        base.update({
-            "all_columns_x": [params.get("column", "value")],
-            "link_length": params.get("bins", 10),
-            "cumulative": params.get("cumulative", False),
-            "normalized": params.get("normalized", False),
-            "row_limit": 10000,
-        })
+        base.update(
+            {
+                "all_columns_x": [params.get("column", "value")],
+                "link_length": params.get("bins", 10),
+                "cumulative": params.get("cumulative", False),
+                "normalized": params.get("normalized", False),
+                "row_limit": 10000,
+            }
+        )
 
     elif viz_type in ("bubble_v2", "bubble"):
-        base.update({
-            "x": {
-                "expressionType": "SIMPLE",
-                "column": {"column_name": params.get("x", "x"), "type": "FLOAT"},
-                "aggregate": "MAX",
-                "label": params.get("x", "x"),
-            },
-            "y": {
-                "expressionType": "SIMPLE",
-                "column": {"column_name": params.get("y", "y"), "type": "FLOAT"},
-                "aggregate": "MAX",
-                "label": params.get("y", "y"),
-            },
-            "size": {
-                "expressionType": "SIMPLE",
-                "column": {"column_name": params.get("size", "size"), "type": "FLOAT"},
-                "aggregate": "MAX",
-                "label": params.get("size", "size"),
-            },
-            "entity": params.get("entity", "entity"),
-            "row_limit": 100,
-        })
+        base.update(
+            {
+                "x": {
+                    "expressionType": "SIMPLE",
+                    "column": {"column_name": params.get("x", "x"), "type": "FLOAT"},
+                    "aggregate": "MAX",
+                    "label": params.get("x", "x"),
+                },
+                "y": {
+                    "expressionType": "SIMPLE",
+                    "column": {"column_name": params.get("y", "y"), "type": "FLOAT"},
+                    "aggregate": "MAX",
+                    "label": params.get("y", "y"),
+                },
+                "size": {
+                    "expressionType": "SIMPLE",
+                    "column": {"column_name": params.get("size", "size"), "type": "FLOAT"},
+                    "aggregate": "MAX",
+                    "label": params.get("size", "size"),
+                },
+                "entity": params.get("entity", "entity"),
+                "row_limit": 100,
+            }
+        )
 
     else:
         base.update(params)
@@ -514,21 +541,26 @@ def build_native_filter_configuration(
             "targets": [],
             "scope": nf.get("scope", {"rootPath": ["ROOT_ID"], "excluded": []}),
             "defaultDataMask": nf.get("defaultDataMask", {"filterState": {"value": None}}),
-            "controlValues": nf.get("controlValues", {
-                "enableEmptyFilter": True,
-                "defaultToFirstItem": False,
-                "multiSelect": True,
-                "searchAllOptions": True,
-                "inverseSelection": False,
-            }),
+            "controlValues": nf.get(
+                "controlValues",
+                {
+                    "enableEmptyFilter": True,
+                    "defaultToFirstItem": False,
+                    "multiSelect": True,
+                    "searchAllOptions": True,
+                    "inverseSelection": False,
+                },
+            ),
         }
 
         # Set targets with actual dataset ID
         for target in nf.get("targets", []):
-            filter_config["targets"].append({
-                "datasetId": first_dataset_id,  # Use first dataset for filter values
-                "column": target.get("column", {"name": "unknown"}),
-            })
+            filter_config["targets"].append(
+                {
+                    "datasetId": first_dataset_id,  # Use first dataset for filter values
+                    "column": target.get("column", {"name": "unknown"}),
+                }
+            )
 
         configured_filters.append(filter_config)
 
@@ -610,7 +642,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Setup Superset dashboards v2 with native filters")
     parser.add_argument("--dry-run", action="store_true", help="Parse config and validate only")
     parser.add_argument("--password", type=str, help="Superset admin password")
-    parser.add_argument("--definitions", type=str, default=str(DEFINITIONS_PATH), help="Path to definitions YAML")
+    parser.add_argument(
+        "--definitions", type=str, default=str(DEFINITIONS_PATH), help="Path to definitions YAML"
+    )
     parser.add_argument("--css", type=str, default=str(CSS_PATH), help="Path to CSS file")
     args = parser.parse_args()
 
@@ -640,7 +674,9 @@ def main() -> int:
         superset_cfg.get("password_env", "SUPERSET_PASSWORD"), ""
     )
     if not password:
-        print(f"  [ERROR] Password not provided. Use --password or set ${superset_cfg.get('password_env', 'SUPERSET_PASSWORD')}")
+        print(
+            f"  [ERROR] Password not provided. Use --password or set ${superset_cfg.get('password_env', 'SUPERSET_PASSWORD')}"
+        )
         return 1
 
     dashboards = superset_cfg.get("dashboards", [])
@@ -665,11 +701,11 @@ def main() -> int:
                 print(f"    - {ds['name']} -> {ds['chart_name']} [{ds['viz_type']}]")
         return 0
 
-    print(f"\n--- Authenticating with Superset ---")
+    print("\n--- Authenticating with Superset ---")
     session = get_session(base_url, username, password)
     print("  [OK] Authenticated")
 
-    print(f"\n--- Finding BigQuery database ---")
+    print("\n--- Finding BigQuery database ---")
     db_name = superset_cfg.get("database_name", "BigQuery MR Health")
     database_id = find_database_id(session, base_url, db_name)
     if not database_id:
@@ -678,9 +714,12 @@ def main() -> int:
     print(f"  [OK] Database found: {db_name} (id={database_id})")
 
     stats = {
-        "datasets_ok": 0, "datasets_fail": 0,
-        "charts_ok": 0, "charts_fail": 0,
-        "dashboards_ok": 0, "dashboards_fail": 0,
+        "datasets_ok": 0,
+        "datasets_fail": 0,
+        "charts_ok": 0,
+        "charts_fail": 0,
+        "dashboards_ok": 0,
+        "dashboards_fail": 0,
         "filters_ok": 0,
     }
 
@@ -726,8 +765,14 @@ def main() -> int:
             print(f"\n  --- Creating dashboard: {dash_title} ---")
             first_dataset_id = dataset_ids[0] if dataset_ids else None
             dash_id = create_dashboard(
-                session, base_url, dash_title, dash_slug, chart_ids,
-                first_dataset_id, native_filters, css_content
+                session,
+                base_url,
+                dash_title,
+                dash_slug,
+                chart_ids,
+                first_dataset_id,
+                native_filters,
+                css_content,
             )
             if dash_id:
                 stats["dashboards_ok"] += 1
@@ -749,7 +794,7 @@ def main() -> int:
     total_fail = stats["datasets_fail"] + stats["charts_fail"] + stats["dashboards_fail"]
     if total_fail == 0:
         print(f"\n  [SUCCESS] All assets created! Access at {base_url}")
-        print(f"\n  Dashboard URLs:")
+        print("\n  Dashboard URLs:")
         for dash in dashboards:
             print(f"    - {base_url}/superset/dashboard/{dash['slug']}/")
         return 0

@@ -21,7 +21,7 @@ from pathlib import Path
 
 from google.cloud import bigquery
 
-from scripts.utils.config import load_config, get_project_id
+from scripts.utils.config import get_project_id, load_config
 from scripts.utils.sql_executor import execute_sql_file
 
 

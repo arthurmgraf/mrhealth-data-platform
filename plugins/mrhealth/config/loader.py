@@ -3,6 +3,7 @@ Centralized Config Loader
 ===========================
 Loads project_config.yaml for all DAGs and operators.
 """
+
 from __future__ import annotations
 
 import os
@@ -15,9 +16,7 @@ CONFIG_PATH = Path(
     os.environ.get("MRHEALTH_CONFIG_PATH", "/opt/airflow/config/project_config.yaml")
 )
 
-SQL_BASE = Path(
-    os.environ.get("MRHEALTH_SQL_PATH", "/opt/airflow/sql")
-)
+SQL_BASE = Path(os.environ.get("MRHEALTH_SQL_PATH", "/opt/airflow/sql"))
 
 _config_cache: dict[str, Any] | None = None
 
@@ -31,7 +30,7 @@ def load_config() -> dict[str, Any]:
     global _config_cache
     if _config_cache is not None:
         return _config_cache
-    with open(CONFIG_PATH, "r") as f:
+    with open(CONFIG_PATH) as f:
         _config_cache = yaml.safe_load(f)
     return _config_cache
 

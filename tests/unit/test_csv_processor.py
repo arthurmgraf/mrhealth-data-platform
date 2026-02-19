@@ -3,52 +3,56 @@
 Tests all validation, loading, and quarantine logic without GCP dependencies.
 All GCS/BigQuery calls are mocked.
 """
+
 from __future__ import annotations
 
-import json
-from datetime import datetime, timezone
 from decimal import Decimal
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def valid_pedido_df() -> pd.DataFrame:
     """DataFrame mimicking a valid pedido.csv."""
-    return pd.DataFrame({
-        "Id_Unidade": [1, 2, 3],
-        "Id_Pedido": ["ORD001", "ORD002", "ORD003"],
-        "Tipo_Pedido": ["Loja Online", "Loja Fisica", "Loja Online"],
-        "Data_Pedido": ["2026-01-15", "2026-01-15", "2026-01-16"],
-        "Vlr_Pedido": [42.90, 28.50, 100.00],
-        "Endereco_Entrega": ["Rua A", "Rua B", "Rua C"],
-        "Taxa_Entrega": [5.00, 0.00, 8.50],
-        "Status": ["Finalizado", "Pendente", "Cancelado"],
-    })
+    return pd.DataFrame(
+        {
+            "Id_Unidade": [1, 2, 3],
+            "Id_Pedido": ["ORD001", "ORD002", "ORD003"],
+            "Tipo_Pedido": ["Loja Online", "Loja Fisica", "Loja Online"],
+            "Data_Pedido": ["2026-01-15", "2026-01-15", "2026-01-16"],
+            "Vlr_Pedido": [42.90, 28.50, 100.00],
+            "Endereco_Entrega": ["Rua A", "Rua B", "Rua C"],
+            "Taxa_Entrega": [5.00, 0.00, 8.50],
+            "Status": ["Finalizado", "Pendente", "Cancelado"],
+        }
+    )
 
 
 @pytest.fixture
 def valid_item_pedido_df() -> pd.DataFrame:
     """DataFrame mimicking a valid item_pedido.csv."""
-    return pd.DataFrame({
-        "Id_Pedido": ["ORD001", "ORD001", "ORD002"],
-        "Id_Item_Pedido": ["ITEM001", "ITEM002", "ITEM003"],
-        "Id_Produto": [1, 5, 10],
-        "Qtd": [2, 1, 3],
-        "Vlr_Item": [28.90, 18.50, 21.90],
-        "Observacao": ["Sem gluten", "", "Extra proteina"],
-    })
+    return pd.DataFrame(
+        {
+            "Id_Pedido": ["ORD001", "ORD001", "ORD002"],
+            "Id_Item_Pedido": ["ITEM001", "ITEM002", "ITEM003"],
+            "Id_Produto": [1, 5, 10],
+            "Qtd": [2, 1, 3],
+            "Vlr_Item": [28.90, 18.50, 21.90],
+            "Observacao": ["Sem gluten", "", "Extra proteina"],
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
 # validate_pedido
 # ---------------------------------------------------------------------------
+
 
 class TestValidatePedido:
     def test_valid_data_returns_all_rows(self, valid_pedido_df):
@@ -102,11 +106,21 @@ class TestValidatePedido:
         df_valid, errors = validate_pedido(df)
         assert len(df_valid) == 3
 
-    def test_non_numeric_value_becomes_null_and_dropped(self, valid_pedido_df):
+    def test_non_numeric_value_becomes_null_and_dropped(self):
         from cloud_functions.csv_processor.main import validate_pedido
 
-        df = valid_pedido_df.copy()
-        df.loc[0, "Vlr_Pedido"] = "not_a_number"
+        df = pd.DataFrame(
+            {
+                "Id_Unidade": [1, 2, 3],
+                "Id_Pedido": ["ORD001", "ORD002", "ORD003"],
+                "Tipo_Pedido": ["Loja Online", "Loja Fisica", "Loja Online"],
+                "Data_Pedido": ["2026-01-15", "2026-01-15", "2026-01-16"],
+                "Vlr_Pedido": ["not_a_number", "28.50", "100.00"],
+                "Endereco_Entrega": ["Rua A", "Rua B", "Rua C"],
+                "Taxa_Entrega": [5.00, 0.00, 8.50],
+                "Status": ["Finalizado", "Pendente", "Cancelado"],
+            }
+        )
         df_valid, errors = validate_pedido(df)
         assert len(df_valid) == 2
 
@@ -122,6 +136,7 @@ class TestValidatePedido:
 # ---------------------------------------------------------------------------
 # validate_item_pedido
 # ---------------------------------------------------------------------------
+
 
 class TestValidateItemPedido:
     def test_valid_data_returns_all_rows(self, valid_item_pedido_df):
@@ -169,6 +184,7 @@ class TestValidateItemPedido:
 # load_to_bigquery
 # ---------------------------------------------------------------------------
 
+
 class TestLoadToBigquery:
     @patch("cloud_functions.csv_processor.main.bigquery.Client")
     def test_load_adds_metadata_columns(self, mock_bq_cls, valid_pedido_df):
@@ -207,7 +223,6 @@ class TestLoadToBigquery:
     @patch("cloud_functions.csv_processor.main.bigquery.Client")
     def test_load_converts_numerics_to_decimal(self, mock_bq_cls, valid_pedido_df):
         from cloud_functions.csv_processor.main import load_to_bigquery
-        from decimal import Decimal
 
         client = MagicMock()
         mock_bq_cls.return_value = client
@@ -232,7 +247,9 @@ class TestLoadToBigquery:
 
         job_config = client.load_table_from_dataframe.call_args[1].get(
             "job_config",
-            client.load_table_from_dataframe.call_args[0][2] if len(client.load_table_from_dataframe.call_args[0]) > 2 else None,
+            client.load_table_from_dataframe.call_args[0][2]
+            if len(client.load_table_from_dataframe.call_args[0]) > 2
+            else None,
         )
         assert job_config is not None
 
@@ -240,6 +257,7 @@ class TestLoadToBigquery:
 # ---------------------------------------------------------------------------
 # quarantine_file
 # ---------------------------------------------------------------------------
+
 
 class TestQuarantineFile:
     @patch("cloud_functions.csv_processor.main.storage.Client")
@@ -280,6 +298,7 @@ class TestQuarantineFile:
 # ---------------------------------------------------------------------------
 # process_csv (entry point)
 # ---------------------------------------------------------------------------
+
 
 class TestProcessCsv:
     @patch("cloud_functions.csv_processor.main.load_to_bigquery")
@@ -328,7 +347,9 @@ class TestProcessCsv:
     @patch("cloud_functions.csv_processor.main.load_to_bigquery")
     @patch("cloud_functions.csv_processor.main.validate_item_pedido")
     @patch("cloud_functions.csv_processor.main.read_csv_from_gcs")
-    def test_processes_item_pedido_csv(self, mock_read, mock_validate, mock_load, valid_item_pedido_df):
+    def test_processes_item_pedido_csv(
+        self, mock_read, mock_validate, mock_load, valid_item_pedido_df
+    ):
         from cloud_functions.csv_processor.main import process_csv
 
         mock_read.return_value = valid_item_pedido_df
@@ -341,7 +362,9 @@ class TestProcessCsv:
         process_csv(event)
 
         mock_validate.assert_called_once()
-        mock_load.assert_called_once_with(valid_item_pedido_df, "order_items", "raw/csv_sales/item_pedido.csv")
+        mock_load.assert_called_once_with(
+            valid_item_pedido_df, "order_items", "raw/csv_sales/item_pedido.csv"
+        )
 
     @patch("cloud_functions.csv_processor.main.load_to_bigquery")
     @patch("cloud_functions.csv_processor.main.read_csv_from_gcs")
@@ -360,7 +383,9 @@ class TestProcessCsv:
     @patch("cloud_functions.csv_processor.main.quarantine_file")
     @patch("cloud_functions.csv_processor.main.validate_pedido")
     @patch("cloud_functions.csv_processor.main.read_csv_from_gcs")
-    def test_quarantines_when_no_valid_rows(self, mock_read, mock_validate, mock_quarantine, valid_pedido_df):
+    def test_quarantines_when_no_valid_rows(
+        self, mock_read, mock_validate, mock_quarantine, valid_pedido_df
+    ):
         from cloud_functions.csv_processor.main import process_csv
 
         mock_read.return_value = valid_pedido_df
@@ -393,6 +418,7 @@ class TestProcessCsv:
 # ---------------------------------------------------------------------------
 # read_csv_from_gcs
 # ---------------------------------------------------------------------------
+
 
 class TestReadCsvFromGcs:
     @patch("cloud_functions.csv_processor.main.storage.Client")

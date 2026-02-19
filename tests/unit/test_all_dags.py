@@ -4,13 +4,16 @@ DAG Validation Tests
 Parametrized tests for all 5 MR. HEALTH Airflow DAGs.
 Validates: import, existence, schedule, tags, cycles, catchup, owner.
 """
+
 from __future__ import annotations
 
 import os
 from pathlib import Path
 
 import pytest
-from airflow.models import DagBag
+
+pytest.importorskip("airflow.models", reason="Airflow not available (requires Python 3.11)")
+from airflow.models import DagBag  # noqa: E402
 
 _root = Path(__file__).resolve().parent.parent.parent
 os.environ.setdefault("MRHEALTH_CONFIG_PATH", str(_root / "config" / "project_config.yaml"))
@@ -50,6 +53,7 @@ def test_dag_schedule(dagbag, dag_id, expected):
 @pytest.mark.parametrize("dag_id", EXPECTED_DAGS.keys())
 def test_dag_no_cycles(dagbag, dag_id):
     from airflow.exceptions import AirflowDagCycleException
+
     dag = dagbag.get_dag(dag_id)
     try:
         dag.test_cycle()

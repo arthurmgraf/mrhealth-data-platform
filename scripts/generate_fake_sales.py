@@ -24,8 +24,8 @@ Date: January 2026
 
 import argparse
 import os
-import uuid
 import random
+import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -83,24 +83,60 @@ COUNTRIES = [
 # City pools per state for realistic unit names
 CITIES_BY_STATE = {
     1: [  # RS
-        "Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas",
-        "Santa Maria", "Gravatai", "Viamao", "Novo Hamburgo",
-        "Sao Leopoldo", "Rio Grande", "Alvorada", "Passo Fundo",
-        "Sapucaia do Sul", "Uruguaiana", "Santa Cruz do Sul",
-        "Cachoeirinha", "Bage", "Bento Goncalves", "Erechim",
+        "Porto Alegre",
+        "Caxias do Sul",
+        "Pelotas",
+        "Canoas",
+        "Santa Maria",
+        "Gravatai",
+        "Viamao",
+        "Novo Hamburgo",
+        "Sao Leopoldo",
+        "Rio Grande",
+        "Alvorada",
+        "Passo Fundo",
+        "Sapucaia do Sul",
+        "Uruguaiana",
+        "Santa Cruz do Sul",
+        "Cachoeirinha",
+        "Bage",
+        "Bento Goncalves",
+        "Erechim",
         "Guaiba",
     ],
     2: [  # SC
-        "Florianopolis", "Joinville", "Blumenau", "Sao Jose",
-        "Chapeco", "Criciuma", "Itajai", "Jaragua do Sul",
-        "Lages", "Palhoca", "Balneario Camboriu", "Brusque",
-        "Tubarao", "Sao Bento do Sul", "Cacador",
+        "Florianopolis",
+        "Joinville",
+        "Blumenau",
+        "Sao Jose",
+        "Chapeco",
+        "Criciuma",
+        "Itajai",
+        "Jaragua do Sul",
+        "Lages",
+        "Palhoca",
+        "Balneario Camboriu",
+        "Brusque",
+        "Tubarao",
+        "Sao Bento do Sul",
+        "Cacador",
     ],
     3: [  # PR
-        "Curitiba", "Londrina", "Maringa", "Ponta Grossa",
-        "Cascavel", "Sao Jose dos Pinhais", "Foz do Iguacu",
-        "Colombo", "Guarapuava", "Paranagua", "Araucaria",
-        "Toledo", "Apucarana", "Pinhais", "Campo Largo",
+        "Curitiba",
+        "Londrina",
+        "Maringa",
+        "Ponta Grossa",
+        "Cascavel",
+        "Sao Jose dos Pinhais",
+        "Foz do Iguacu",
+        "Colombo",
+        "Guarapuava",
+        "Paranagua",
+        "Araucaria",
+        "Toledo",
+        "Apucarana",
+        "Pinhais",
+        "Campo Largo",
     ],
 }
 
@@ -136,6 +172,7 @@ ORDER_TYPE_WEIGHTS = [0.60, 0.40]
 # HELPER FUNCTIONS
 # ============================================================================
 
+
 def generate_unit_list(num_units: int) -> list[dict]:
     """Generate a list of restaurant units distributed across southern Brazil states."""
     units = []
@@ -150,22 +187,26 @@ def generate_unit_list(num_units: int) -> list[dict]:
             if unit_id > num_units:
                 break
             city = cities[i % len(cities)]
-            units.append({
-                "id": unit_id,
-                "name": f"Mr. Health - {city}",
-                "state_id": state_id,
-            })
+            units.append(
+                {
+                    "id": unit_id,
+                    "name": f"Mr. Health - {city}",
+                    "state_id": state_id,
+                }
+            )
             unit_id += 1
 
     # Ensure we have exactly num_units
     while len(units) < num_units:
         state_id = random.choice([1, 2, 3])
         city = random.choice(CITIES_BY_STATE[state_id])
-        units.append({
-            "id": len(units) + 1,
-            "name": f"Mr. Health - {city} II",
-            "state_id": state_id,
-        })
+        units.append(
+            {
+                "id": len(units) + 1,
+                "name": f"Mr. Health - {city} II",
+                "state_id": state_id,
+            }
+        )
 
     return units[:num_units]
 
@@ -202,14 +243,16 @@ def generate_orders_for_unit_day(
             has_observation = random.random() < 0.30
             observation = random.choice(OBSERVATIONS) if has_observation else ""
 
-            order_items.append({
-                "Id_Pedido": order_id,
-                "Id_Item_Pedido": str(uuid.uuid4()),
-                "Id_Produto": product["id"],
-                "Qtd": qty,
-                "Vlr_Item": f"{item_value:.2f}",
-                "Observacao": observation,
-            })
+            order_items.append(
+                {
+                    "Id_Pedido": order_id,
+                    "Id_Item_Pedido": str(uuid.uuid4()),
+                    "Id_Produto": product["id"],
+                    "Qtd": qty,
+                    "Vlr_Item": f"{item_value:.2f}",
+                    "Observacao": observation,
+                }
+            )
 
         # Delivery fee: 0.00 for physical, 5.00-25.00 for online
         if order_type == "Loja Online":
@@ -221,16 +264,18 @@ def generate_orders_for_unit_day(
 
         order_value = round(total_items_value + delivery_fee, 2)
 
-        orders.append({
-            "Id_Unidade": unit_id,
-            "Id_Pedido": order_id,
-            "Tipo_Pedido": order_type,
-            "Data_Pedido": date.strftime("%Y-%m-%d"),
-            "Vlr_Pedido": f"{order_value:.2f}",
-            "Endereco_Entrega": delivery_address,
-            "Taxa_Entrega": f"{delivery_fee:.2f}",
-            "Status": status,
-        })
+        orders.append(
+            {
+                "Id_Unidade": unit_id,
+                "Id_Pedido": order_id,
+                "Tipo_Pedido": order_type,
+                "Data_Pedido": date.strftime("%Y-%m-%d"),
+                "Vlr_Pedido": f"{order_value:.2f}",
+                "Endereco_Entrega": delivery_address,
+                "Taxa_Entrega": f"{delivery_fee:.2f}",
+                "Status": status,
+            }
+        )
 
         items.extend(order_items)
 
@@ -241,40 +286,41 @@ def generate_orders_for_unit_day(
 # REFERENCE DATA GENERATORS
 # ============================================================================
 
+
 def generate_reference_data(units: list[dict], output_dir: Path) -> None:
     """Generate all static reference data CSVs."""
     ref_dir = output_dir / "reference_data"
     ref_dir.mkdir(parents=True, exist_ok=True)
 
     # produto.csv
-    df_products = pd.DataFrame([
-        {"Id_Produto": p["id"], "Nome_Produto": p["name"]}
-        for p in PRODUCT_CATALOG
-    ])
+    df_products = pd.DataFrame(
+        [{"Id_Produto": p["id"], "Nome_Produto": p["name"]} for p in PRODUCT_CATALOG]
+    )
     df_products.to_csv(ref_dir / "produto.csv", index=False, sep=";", encoding="utf-8")
     print(f"  [OK] produto.csv: {len(df_products)} products")
 
     # unidade.csv
-    df_units = pd.DataFrame([
-        {"Id_Unidade": u["id"], "Nome_Unidade": u["name"], "Id_Estado": u["state_id"]}
-        for u in units
-    ])
+    df_units = pd.DataFrame(
+        [
+            {"Id_Unidade": u["id"], "Nome_Unidade": u["name"], "Id_Estado": u["state_id"]}
+            for u in units
+        ]
+    )
     df_units.to_csv(ref_dir / "unidade.csv", index=False, sep=";", encoding="utf-8")
     print(f"  [OK] unidade.csv: {len(df_units)} units")
 
     # estado.csv
-    df_states = pd.DataFrame([
-        {"Id_Estado": s["id"], "Id_Pais": s["country_id"], "Nome_Estado": s["name"]}
-        for s in STATES
-    ])
+    df_states = pd.DataFrame(
+        [
+            {"Id_Estado": s["id"], "Id_Pais": s["country_id"], "Nome_Estado": s["name"]}
+            for s in STATES
+        ]
+    )
     df_states.to_csv(ref_dir / "estado.csv", index=False, sep=";", encoding="utf-8")
     print(f"  [OK] estado.csv: {len(df_states)} states")
 
     # pais.csv
-    df_countries = pd.DataFrame([
-        {"Id_Pais": c["id"], "Nome_Pais": c["name"]}
-        for c in COUNTRIES
-    ])
+    df_countries = pd.DataFrame([{"Id_Pais": c["id"], "Nome_Pais": c["name"]} for c in COUNTRIES])
     df_countries.to_csv(ref_dir / "pais.csv", index=False, sep=";", encoding="utf-8")
     print(f"  [OK] pais.csv: {len(df_countries)} countries")
 
@@ -282,6 +328,7 @@ def generate_reference_data(units: list[dict], output_dir: Path) -> None:
 # ============================================================================
 # MAIN GENERATION LOGIC
 # ============================================================================
+
 
 def generate_sales_data(
     units: list[dict],
@@ -319,7 +366,7 @@ def generate_sales_data(
     stats["days_processed"] = len(dates)
     stats["units_processed"] = len(units)
 
-    print(f"\nGenerating sales data:")
+    print("\nGenerating sales data:")
     print(f"  Units: {len(units)}")
     print(f"  Date range: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
     print(f"  Days: {len(dates)}")
@@ -386,13 +433,13 @@ def print_summary(stats: dict, output_dir: Path) -> None:
 
     # Estimate total size
     total_size = 0
-    for root, dirs, files in os.walk(output_dir):
+    for root, _dirs, files in os.walk(output_dir):
         for f in files:
             total_size += os.path.getsize(os.path.join(root, f))
 
     size_mb = total_size / (1024 * 1024)
     print(f"  Total size:        {size_mb:.2f} MB")
-    print(f"  GCS Free Tier:     5,120 MB (5 GB)")
+    print("  GCS Free Tier:     5,120 MB (5 GB)")
     print(f"  Usage:             {(size_mb / 5120) * 100:.2f}%")
     print("=" * 60)
 
@@ -400,6 +447,7 @@ def print_summary(stats: dict, output_dir: Path) -> None:
 # ============================================================================
 # CLI ENTRY POINT
 # ============================================================================
+
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""

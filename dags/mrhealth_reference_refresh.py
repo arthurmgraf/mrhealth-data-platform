@@ -16,19 +16,20 @@ Tasks:
 Author: Arthur Graf
 Date: February 2026
 """
+
 from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
 from typing import Any
 
-from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.google.cloud.sensors.gcs import GCSObjectsWithPrefixExistenceSensor
 from google.cloud import bigquery
-
 from mrhealth.callbacks.alerts import on_task_failure
 from mrhealth.config.loader import get_project_id, load_config
+
+from airflow import DAG
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +88,7 @@ def load_references_to_bronze(**context: Any) -> None:
 
         job = client.load_table_from_uri(gcs_uri, table_id, job_config=job_config)
         job.result()
-        logger.info("Loaded %s -> %s (%d rows)",
-                     gcs_uri, table_id, job.output_rows or 0)
+        logger.info("Loaded %s -> %s (%d rows)", gcs_uri, table_id, job.output_rows or 0)
 
 
 def validate_references(**context: Any) -> None:
@@ -108,8 +108,7 @@ def validate_references(**context: Any) -> None:
         rows = list(client.query(sql).result())
         count = rows[0].cnt if rows else 0
         status = "OK" if count >= expected else "WARN"
-        logger.info("[%s] bronze.%s: %d rows (expected >= %d)",
-                     status, table_name, count, expected)
+        logger.info("[%s] bronze.%s: %d rows (expected >= %d)", status, table_name, count, expected)
 
     fk_sql = f"""
     SELECT COUNT(*) as orphan_units
@@ -155,7 +154,6 @@ with DAG(
     tags=TAGS,
     doc_md=__doc__,
 ) as dag:
-
     _config = load_config()
     _bucket = _config["storage"]["bucket"]
 

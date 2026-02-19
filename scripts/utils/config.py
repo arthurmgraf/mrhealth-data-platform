@@ -12,6 +12,7 @@ Key improvement over the duplicated versions:
 - Handles missing config file gracefully with a clear error message.
 - Provides get_project_id() to centralize the fallback logic for project ID.
 """
+
 from __future__ import annotations
 
 import os
@@ -46,11 +47,10 @@ def load_config(config_path: Path | None = None) -> dict[str, Any]:
 
     if not path.exists():
         raise FileNotFoundError(
-            f"Configuration file not found: {path}\n"
-            f"Expected at: {path.resolve()}"
+            f"Configuration file not found: {path}\nExpected at: {path.resolve()}"
         )
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         raw = f.read()
 
     def _replace_env(match: re.Match) -> str:

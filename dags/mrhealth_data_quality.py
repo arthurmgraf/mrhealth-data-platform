@@ -14,17 +14,18 @@ Tasks:
 Author: Arthur Graf
 Date: February 2026
 """
+
 from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
 from typing import Any
 
-from airflow import DAG
 from airflow.operators.python import PythonOperator
-
 from mrhealth.callbacks.alerts import on_task_failure
 from mrhealth.config.loader import get_project_id
+
+from airflow import DAG
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +137,6 @@ with DAG(
     tags=TAGS,
     doc_md=__doc__,
 ) as dag:
-
     check_tasks = []
     for check_name in CHECK_NAMES:
         task = PythonOperator(

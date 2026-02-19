@@ -15,14 +15,14 @@ Author: Arthur Graf -- MR. HEALTH Data Platform
 Date: January 2026
 """
 
-import functions_framework
-import pandas as pd
 import io
 import json
 import os
-from datetime import datetime, timezone
-from google.cloud import storage, bigquery
+from datetime import UTC, datetime
 
+import functions_framework
+import pandas as pd
+from google.cloud import bigquery, storage
 
 # Environment configuration (must be set via environment variables or .env)
 PROJECT = os.environ["PROJECT_ID"]
@@ -32,12 +32,16 @@ QUARANTINE_PREFIX = "quarantine"
 
 # Expected schemas for validation
 PEDIDO_COLUMNS = [
-    "Id_Unidade", "Id_Pedido", "Tipo_Pedido", "Data_Pedido",
-    "Vlr_Pedido", "Endereco_Entrega", "Taxa_Entrega", "Status"
+    "Id_Unidade",
+    "Id_Pedido",
+    "Tipo_Pedido",
+    "Data_Pedido",
+    "Vlr_Pedido",
+    "Endereco_Entrega",
+    "Taxa_Entrega",
+    "Status",
 ]
-ITEM_PEDIDO_COLUMNS = [
-    "Id_Pedido", "Id_Item_Pedido", "Id_Produto", "Qtd", "Vlr_Item", "Observacao"
-]
+ITEM_PEDIDO_COLUMNS = ["Id_Pedido", "Id_Item_Pedido", "Id_Produto", "Qtd", "Vlr_Item", "Observacao"]
 
 VALID_STATUSES = {"Finalizado", "Pendente", "Cancelado"}
 VALID_ORDER_TYPES = {"Loja Online", "Loja Fisica"}
@@ -66,7 +70,7 @@ def quarantine_file(bucket_name: str, source_blob: str, error_msg: str) -> None:
     error_report = {
         "source_file": source_blob,
         "error": error_msg,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
     error_blob = bucket.blob(quarantine_path.replace(".csv", "_error.json"))
     error_blob.upload_from_string(json.dumps(error_report, indent=2))
@@ -89,7 +93,9 @@ def validate_pedido(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     df["Data_Pedido"] = pd.to_datetime(df["Data_Pedido"], errors="coerce").dt.date
 
     # Remove nulls in required fields
-    null_mask = df[["Id_Unidade", "Id_Pedido", "Data_Pedido", "Vlr_Pedido", "Status"]].isnull().any(axis=1)
+    null_mask = (
+        df[["Id_Unidade", "Id_Pedido", "Data_Pedido", "Vlr_Pedido", "Status"]].isnull().any(axis=1)
+    )
     if null_mask.sum() > 0:
         errors.append(f"Dropped {null_mask.sum()} rows with null required fields")
     df = df[~null_mask]
@@ -123,7 +129,9 @@ def validate_item_pedido(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     df["Vlr_Item"] = pd.to_numeric(df["Vlr_Item"], errors="coerce")
 
     # Remove nulls in required fields
-    null_mask = df[["Id_Pedido", "Id_Item_Pedido", "Id_Produto", "Qtd", "Vlr_Item"]].isnull().any(axis=1)
+    null_mask = (
+        df[["Id_Pedido", "Id_Item_Pedido", "Id_Produto", "Qtd", "Vlr_Item"]].isnull().any(axis=1)
+    )
     if null_mask.sum() > 0:
         errors.append(f"Dropped {null_mask.sum()} rows with null required fields")
     df = df[~null_mask]
@@ -146,25 +154,27 @@ def load_to_bigquery(df: pd.DataFrame, table_name: str, source_file: str) -> int
 
     # Add metadata columns
     df["_source_file"] = source_file
-    df["_ingest_timestamp"] = datetime.now(timezone.utc)
-    df["_ingest_date"] = datetime.now(timezone.utc).date()
+    df["_ingest_timestamp"] = datetime.now(UTC)
+    df["_ingest_date"] = datetime.now(UTC).date()
 
     # Normalize column names to match BigQuery schema (lowercase with underscores)
-    df = df.rename(columns={
-        "Id_Unidade": "id_unidade",
-        "Id_Pedido": "id_pedido",
-        "Tipo_Pedido": "tipo_pedido",
-        "Data_Pedido": "data_pedido",
-        "Vlr_Pedido": "vlr_pedido",
-        "Endereco_Entrega": "endereco_entrega",
-        "Taxa_Entrega": "taxa_entrega",
-        "Status": "status",
-        "Id_Item_Pedido": "id_item_pedido",
-        "Id_Produto": "id_produto",
-        "Qtd": "qtd",
-        "Vlr_Item": "vlr_item",
-        "Observacao": "observacao",
-    })
+    df = df.rename(
+        columns={
+            "Id_Unidade": "id_unidade",
+            "Id_Pedido": "id_pedido",
+            "Tipo_Pedido": "tipo_pedido",
+            "Data_Pedido": "data_pedido",
+            "Vlr_Pedido": "vlr_pedido",
+            "Endereco_Entrega": "endereco_entrega",
+            "Taxa_Entrega": "taxa_entrega",
+            "Status": "status",
+            "Id_Item_Pedido": "id_item_pedido",
+            "Id_Produto": "id_produto",
+            "Qtd": "qtd",
+            "Vlr_Item": "vlr_item",
+            "Observacao": "observacao",
+        }
+    )
 
     # Convert float columns to Decimal for NUMERIC compatibility
     # This prevents pyarrow serialization errors with BigQuery NUMERIC type

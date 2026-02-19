@@ -21,7 +21,6 @@ from pathlib import Path
 
 import psycopg2
 
-
 REFERENCE_DIR = Path(__file__).parent.parent / "output" / "reference_data"
 
 # Ordem respeita foreign keys: pais → estado → unidade → produto
@@ -54,7 +53,7 @@ TABLE_CONFIG = [
 
 
 def load_csv(filepath: Path, delimiter: str = ";") -> list[dict]:
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         reader = csv.DictReader(f, delimiter=delimiter)
         return list(reader)
 
@@ -93,7 +92,9 @@ Examples:
     parser.add_argument("--host", required=True, help="PostgreSQL host")
     parser.add_argument("--port", type=int, default=5432, help="PostgreSQL port (default: 5432)")
     parser.add_argument("--database", default="mrhealth", help="Database name (default: mrhealth)")
-    parser.add_argument("--user", default="mrhealth_admin", help="PostgreSQL user (default: mrhealth_admin)")
+    parser.add_argument(
+        "--user", default="mrhealth_admin", help="PostgreSQL user (default: mrhealth_admin)"
+    )
     parser.add_argument("--password", required=True, help="PostgreSQL password")
     args = parser.parse_args()
 

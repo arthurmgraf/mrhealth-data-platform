@@ -7,6 +7,7 @@ Reads SQL files from sql/monitoring/ and executes them.
 Usage:
     python scripts/deploy_monitoring_tables.py
 """
+
 from __future__ import annotations
 
 import os
@@ -24,13 +25,12 @@ def get_project_id() -> str:
     project_id = os.environ.get("GCP_PROJECT_ID")
     if not project_id:
         import yaml
-        with open(CONFIG_PATH, "r") as f:
+
+        with open(CONFIG_PATH) as f:
             config = yaml.safe_load(f)
         project_id = config["project"]["id"]
         if project_id.startswith("${"):
-            raise ValueError(
-                "GCP_PROJECT_ID not set. Export it or set in .env file."
-            )
+            raise ValueError("GCP_PROJECT_ID not set. Export it or set in .env file.")
     return project_id
 
 

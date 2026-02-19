@@ -6,6 +6,7 @@ build_silver_layer.py, build_gold_layer.py, and build_aggregations.py.
 Provides a single, well-typed implementation with optional {PROJECT_ID}
 placeholder substitution for SQL files that reference the project directly.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -37,7 +38,7 @@ def execute_sql_file(
     print(f"  File: {sql_file_path.name}")
 
     try:
-        with open(sql_file_path, "r", encoding="utf-8") as f:
+        with open(sql_file_path, encoding="utf-8") as f:
             sql = f.read()
 
         if project_id:
@@ -49,7 +50,7 @@ def execute_sql_file(
         bytes_processed = query_job.total_bytes_processed or 0
         bytes_billed = query_job.total_bytes_billed or 0
 
-        print(f"  [OK] Query completed")
+        print("  [OK] Query completed")
         print(f"       Bytes processed: {bytes_processed:,}")
         print(f"       Bytes billed: {bytes_billed:,}")
         return True

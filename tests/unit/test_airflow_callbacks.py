@@ -1,16 +1,15 @@
 """Unit tests for Airflow alert callbacks and config loader plugin."""
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Alert Callbacks
 # ---------------------------------------------------------------------------
+
 
 class TestOnSlaMiss:
     @patch("plugins.mrhealth.callbacks.alerts._save_metric")
@@ -122,6 +121,7 @@ class TestSaveMetric:
 # ---------------------------------------------------------------------------
 # Config Loader Plugin
 # ---------------------------------------------------------------------------
+
 
 class TestPluginConfigLoader:
     def test_load_config_caches(self, tmp_path, monkeypatch):

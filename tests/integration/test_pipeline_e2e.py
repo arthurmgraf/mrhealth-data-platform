@@ -4,32 +4,36 @@ Tests the logical flow from CSV generation through validation to loading.
 Uses real data generation but mocks all GCP services (BigQuery, GCS).
 This validates the contracts between pipeline stages.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
 
-from scripts.constants import PRODUCT_CATALOG, STATUS_CHOICES, ORDER_TYPE_CHOICES
+from scripts.constants import PRODUCT_CATALOG
 
 
 class TestCSVToValidation:
     """Tests that generated CSV data passes Cloud Function validation."""
 
     def test_generated_pedido_passes_validation(self):
-        from scripts.generate_fake_sales import generate_orders_for_unit_day
-        from cloud_functions.csv_processor.main import validate_pedido, PEDIDO_COLUMNS
         from faker import Faker
+
+        from cloud_functions.csv_processor.main import PEDIDO_COLUMNS, validate_pedido
+        from scripts.generate_fake_sales import generate_orders_for_unit_day
 
         fake = Faker("pt_BR")
         fake.seed_instance(42)
 
         orders, items = generate_orders_for_unit_day(
-            fake, unit_id=1, date=datetime(2026, 1, 15),
-            min_orders=20, max_orders=20,
+            fake,
+            unit_id=1,
+            date=datetime(2026, 1, 15),
+            min_orders=20,
+            max_orders=20,
         )
 
         df = pd.DataFrame(orders)
@@ -41,16 +45,20 @@ class TestCSVToValidation:
         assert len(errors) == 0
 
     def test_generated_item_pedido_passes_validation(self):
-        from scripts.generate_fake_sales import generate_orders_for_unit_day
-        from cloud_functions.csv_processor.main import validate_item_pedido, ITEM_PEDIDO_COLUMNS
         from faker import Faker
+
+        from cloud_functions.csv_processor.main import ITEM_PEDIDO_COLUMNS, validate_item_pedido
+        from scripts.generate_fake_sales import generate_orders_for_unit_day
 
         fake = Faker("pt_BR")
         fake.seed_instance(42)
 
         orders, items = generate_orders_for_unit_day(
-            fake, unit_id=1, date=datetime(2026, 1, 15),
-            min_orders=10, max_orders=10,
+            fake,
+            unit_id=1,
+            date=datetime(2026, 1, 15),
+            min_orders=10,
+            max_orders=10,
         )
 
         df = pd.DataFrame(items)
@@ -66,15 +74,19 @@ class TestDataConsistency:
     """Tests cross-table referential integrity of generated data."""
 
     def test_all_items_reference_valid_orders(self):
-        from scripts.generate_fake_sales import generate_orders_for_unit_day
         from faker import Faker
+
+        from scripts.generate_fake_sales import generate_orders_for_unit_day
 
         fake = Faker("pt_BR")
         fake.seed_instance(123)
 
         orders, items = generate_orders_for_unit_day(
-            fake, unit_id=1, date=datetime(2026, 1, 15),
-            min_orders=50, max_orders=50,
+            fake,
+            unit_id=1,
+            date=datetime(2026, 1, 15),
+            min_orders=50,
+            max_orders=50,
         )
 
         order_ids = {o["Id_Pedido"] for o in orders}
@@ -82,15 +94,19 @@ class TestDataConsistency:
             assert item["Id_Pedido"] in order_ids
 
     def test_all_products_reference_valid_catalog(self):
-        from scripts.generate_fake_sales import generate_orders_for_unit_day
         from faker import Faker
+
+        from scripts.generate_fake_sales import generate_orders_for_unit_day
 
         fake = Faker("pt_BR")
         fake.seed_instance(456)
 
         _, items = generate_orders_for_unit_day(
-            fake, unit_id=1, date=datetime(2026, 1, 15),
-            min_orders=50, max_orders=50,
+            fake,
+            unit_id=1,
+            date=datetime(2026, 1, 15),
+            min_orders=50,
+            max_orders=50,
         )
 
         valid_product_ids = {p["id"] for p in PRODUCT_CATALOG}
@@ -98,15 +114,19 @@ class TestDataConsistency:
             assert item["Id_Produto"] in valid_product_ids
 
     def test_order_value_positive(self):
-        from scripts.generate_fake_sales import generate_orders_for_unit_day
         from faker import Faker
+
+        from scripts.generate_fake_sales import generate_orders_for_unit_day
 
         fake = Faker("pt_BR")
         fake.seed_instance(789)
 
         orders, _ = generate_orders_for_unit_day(
-            fake, unit_id=1, date=datetime(2026, 1, 15),
-            min_orders=100, max_orders=100,
+            fake,
+            unit_id=1,
+            date=datetime(2026, 1, 15),
+            min_orders=100,
+            max_orders=100,
         )
 
         for order in orders:
@@ -179,6 +199,7 @@ class TestSQLFileIntegrity:
     def test_no_hardcoded_project_ids_in_sql(self, project_root):
         """SQL files should not contain hardcoded project IDs."""
         import re
+
         pattern = re.compile(r"sixth-foundry-\d+-\w+", re.IGNORECASE)
 
         for sql_dir in ["bronze", "silver", "gold", "monitoring"]:
@@ -187,9 +208,7 @@ class TestSQLFileIntegrity:
                 for sql_file in path.glob("*.sql"):
                     content = sql_file.read_text(encoding="utf-8")
                     match = pattern.search(content)
-                    assert match is None, (
-                        f"{sql_file.name} contains hardcoded ID: {match.group()}"
-                    )
+                    assert match is None, f"{sql_file.name} contains hardcoded ID: {match.group()}"
 
 
 class TestConfigIntegrity:

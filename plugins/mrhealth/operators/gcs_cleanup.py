@@ -4,10 +4,11 @@ GCS Cleanup Operator
 Custom Airflow Operator that deletes GCS objects older than a specified age.
 Used by the data_retention DAG to keep GCS storage within Free Tier limits.
 """
+
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from airflow.models import BaseOperator
@@ -41,7 +42,7 @@ class GCSCleanupOperator(BaseOperator):
     def execute(self, context: dict[str, Any]) -> dict[str, Any]:
         client = storage.Client()
         bucket = client.bucket(self.bucket_name)
-        cutoff = datetime.now(timezone.utc) - timedelta(days=self.max_age_days)
+        cutoff = datetime.now(UTC) - timedelta(days=self.max_age_days)
 
         blobs = list(bucket.list_blobs(prefix=self.prefix))
         deleted = 0

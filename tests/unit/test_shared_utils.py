@@ -2,18 +2,18 @@
 
 Tests config loader (env var substitution, error handling) and SQL executor.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch, mock_open
 
 import pytest
 import yaml
 
-
 # ---------------------------------------------------------------------------
 # load_config
 # ---------------------------------------------------------------------------
+
 
 class TestLoadConfig:
     def test_loads_yaml_with_env_substitution(self, sample_config_yaml, monkeypatch):
@@ -91,11 +91,12 @@ class TestLoadConfig:
 # get_project_id
 # ---------------------------------------------------------------------------
 
+
 class TestGetProjectId:
     def test_returns_config_value(self, sample_config_yaml, monkeypatch):
         monkeypatch.setenv("GCP_PROJECT_ID", "real-project")
 
-        from scripts.utils.config import load_config, get_project_id
+        from scripts.utils.config import get_project_id, load_config
 
         config = load_config(sample_config_yaml)
         result = get_project_id(config)
@@ -149,6 +150,7 @@ class TestGetProjectId:
 # execute_sql_file
 # ---------------------------------------------------------------------------
 
+
 class TestExecuteSqlFile:
     def test_executes_sql_successfully(self, tmp_path, mock_bq_client):
         from scripts.utils.sql_executor import execute_sql_file
@@ -170,9 +172,7 @@ class TestExecuteSqlFile:
             encoding="utf-8",
         )
 
-        result = execute_sql_file(
-            mock_bq_client, sql_file, "Test query", project_id="my-project"
-        )
+        result = execute_sql_file(mock_bq_client, sql_file, "Test query", project_id="my-project")
 
         assert result is True
         called_sql = mock_bq_client.query.call_args[0][0]
@@ -206,9 +206,7 @@ class TestExecuteSqlFile:
     def test_returns_false_on_file_not_found(self, mock_bq_client):
         from scripts.utils.sql_executor import execute_sql_file
 
-        result = execute_sql_file(
-            mock_bq_client, Path("/nonexistent/test.sql"), "Missing file"
-        )
+        result = execute_sql_file(mock_bq_client, Path("/nonexistent/test.sql"), "Missing file")
 
         assert result is False
         mock_bq_client.query.assert_not_called()
@@ -231,6 +229,7 @@ class TestExecuteSqlFile:
 # ---------------------------------------------------------------------------
 # constants
 # ---------------------------------------------------------------------------
+
 
 class TestConstants:
     def test_product_catalog_has_30_items(self):

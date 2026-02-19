@@ -19,8 +19,9 @@ Date: January 2026
 
 import argparse
 import os
-import yaml
 from pathlib import Path
+
+import yaml
 from google.cloud import storage
 
 
@@ -42,7 +43,7 @@ def upload_directory_to_gcs(bucket_name, local_directory, gcs_prefix="", project
 
     print(f"\n[INFO] Uploading from: {local_path}")
     print(f"[INFO] To bucket: gs://{bucket_name}/{gcs_prefix}")
-    print(f"[INFO] Scanning files...\n")
+    print("[INFO] Scanning files...\n")
 
     # Walk through all files in the directory
     for file_path in local_path.rglob("*"):
@@ -70,7 +71,7 @@ def upload_directory_to_gcs(bucket_name, local_directory, gcs_prefix="", project
 def load_config():
     """Load project configuration from YAML."""
     config_path = Path("config/project_config.yaml")
-    with open(config_path, 'r') as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
     return config
 
@@ -79,29 +80,29 @@ def main():
     # Load config
     try:
         config = load_config()
-        default_bucket = config['storage']['bucket']
-        project_id = config['project']['id']
+        default_bucket = config["storage"]["bucket"]
+        project_id = config["project"]["id"]
     except Exception as e:
         print(f"[WARNING] Could not load config: {e}")
         default_bucket = os.environ.get("GCS_BUCKET_NAME", "")
         project_id = os.environ.get("GCP_PROJECT_ID", "")
         if not default_bucket or not project_id:
-            print("[ERROR] Config file not found and env vars GCP_PROJECT_ID/GCS_BUCKET_NAME not set.")
+            print(
+                "[ERROR] Config file not found and env vars GCP_PROJECT_ID/GCS_BUCKET_NAME not set."
+            )
             print("Set them in .env or export them before running this script.")
             return 1
 
-    parser = argparse.ArgumentParser(
-        description="Upload fake data to GCS landing zone"
-    )
+    parser = argparse.ArgumentParser(description="Upload fake data to GCS landing zone")
     parser.add_argument(
         "--bucket",
         default=default_bucket,
-        help=f"GCS bucket name (default from config: {default_bucket})"
+        help=f"GCS bucket name (default from config: {default_bucket})",
     )
     parser.add_argument(
         "--local-dir",
         default="output",
-        help="Local directory containing generated data (default: output)"
+        help="Local directory containing generated data (default: output)",
     )
 
     args = parser.parse_args()
@@ -124,7 +125,7 @@ def main():
         args.bucket,
         os.path.join(args.local_dir, "reference_data"),
         "raw/reference_data",
-        project_id=project_id
+        project_id=project_id,
     )
 
     # Upload sales CSV data
@@ -133,7 +134,7 @@ def main():
         args.bucket,
         os.path.join(args.local_dir, "csv_sales"),
         "raw/csv_sales",
-        project_id=project_id
+        project_id=project_id,
     )
 
     # Summary

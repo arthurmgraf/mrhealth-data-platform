@@ -26,12 +26,11 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 import yaml
-from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.google.cloud.operators.bigquery import (
     BigQueryCheckOperator,
@@ -40,8 +39,9 @@ from airflow.providers.google.cloud.sensors.gcs import (
     GCSObjectsWithPrefixExistenceSensor,
 )
 from google.cloud import bigquery
-
 from mrhealth.callbacks.alerts import on_sla_miss, on_task_failure
+
+from airflow import DAG
 
 logger = logging.getLogger(__name__)
 
@@ -49,12 +49,14 @@ DAG_ID = "mrhealth_daily_pipeline"
 SCHEDULE = "0 2 * * *"
 TAGS = ["mrhealth", "pipeline", "medallion"]
 
-CONFIG_PATH = Path(os.environ.get("MRHEALTH_CONFIG_PATH", "/opt/airflow/config/project_config.yaml"))
+CONFIG_PATH = Path(
+    os.environ.get("MRHEALTH_CONFIG_PATH", "/opt/airflow/config/project_config.yaml")
+)
 SQL_BASE = Path(os.environ.get("MRHEALTH_SQL_PATH", "/opt/airflow/sql"))
 
 
 def _load_project_config() -> dict[str, Any]:
-    with open(CONFIG_PATH, "r") as f:
+    with open(CONFIG_PATH) as f:
         return yaml.safe_load(f)
 
 
@@ -72,9 +74,7 @@ def _execute_sql_files(
         job = client.query(sql)
         job.result()
         bytes_billed = job.total_bytes_billed or 0
-        logger.info(
-            "  OK: %s (billed: %s bytes)", sql_path.name, f"{bytes_billed:,}"
-        )
+        logger.info("  OK: %s (billed: %s bytes)", sql_path.name, f"{bytes_billed:,}")
 
 
 def run_silver_transforms(**context: Any) -> None:
@@ -135,8 +135,7 @@ def quality_check_silver(**context: Any) -> None:
         "orders_not_empty": f"SELECT COUNT(*) > 0 FROM `{project_id}.mrhealth_silver.orders`",
         "order_items_not_empty": f"SELECT COUNT(*) > 0 FROM `{project_id}.mrhealth_silver.order_items`",
         "no_null_order_ids": (
-            f"SELECT COUNT(*) = 0 FROM `{project_id}.mrhealth_silver.orders` "
-            f"WHERE order_id IS NULL"
+            f"SELECT COUNT(*) = 0 FROM `{project_id}.mrhealth_silver.orders` WHERE order_id IS NULL"
         ),
     }
 
@@ -157,9 +156,7 @@ def quality_check_gold(**context: Any) -> None:
 
     checks = {
         "fact_sales_not_empty": f"SELECT COUNT(*) > 0 FROM `{project_id}.mrhealth_gold.fact_sales`",
-        "dims_populated": (
-            f"SELECT COUNT(*) > 0 FROM `{project_id}.mrhealth_gold.dim_product`"
-        ),
+        "dims_populated": (f"SELECT COUNT(*) > 0 FROM `{project_id}.mrhealth_gold.dim_product`"),
         "no_orphan_units": (
             f"SELECT COUNT(*) = 0 FROM `{project_id}.mrhealth_gold.fact_sales` f "
             f"LEFT JOIN `{project_id}.mrhealth_gold.dim_unit` u ON f.unit_key = u.unit_key "
@@ -178,9 +175,8 @@ def quality_check_gold(**context: Any) -> None:
 
 def notify_pipeline_completion(**context: Any) -> None:
     import json
-    import time
     import uuid
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     config = _load_project_config()
     project_id = config["project"]["id"]
@@ -199,9 +195,7 @@ def notify_pipeline_completion(**context: Any) -> None:
     total_rows = 0
     for table_id in tables_to_check:
         try:
-            result = client.query(
-                f"SELECT COUNT(*) AS cnt FROM `{table_id}`"
-            ).result()
+            result = client.query(f"SELECT COUNT(*) AS cnt FROM `{table_id}`").result()
             count = list(result)[0].cnt
             total_rows += count
             logger.info("  %s: %s rows", table_id.split(".")[-1], f"{count:,}")
@@ -210,7 +204,7 @@ def notify_pipeline_completion(**context: Any) -> None:
 
     logger.info("=" * 60)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start_time = context.get("data_interval_start")
     duration = (now - start_time).total_seconds() if start_time else 0
 
@@ -222,18 +216,20 @@ def notify_pipeline_completion(**context: Any) -> None:
 
     table_id = f"{project_id}.mrhealth_monitoring.pipeline_metrics"
     for m in metrics:
-        rows = [{
-            "metric_id": str(uuid.uuid4())[:12],
-            "dag_id": DAG_ID,
-            "dag_run_id": context.get("run_id", ""),
-            "task_id": "notify_completion",
-            "metric_name": m["metric_name"],
-            "metric_value": m["metric_value"],
-            "metric_unit": m["metric_unit"],
-            "execution_date": context.get("ds", now.strftime("%Y-%m-%d")),
-            "execution_timestamp": now.isoformat(),
-            "details": json.dumps({}),
-        }]
+        rows = [
+            {
+                "metric_id": str(uuid.uuid4())[:12],
+                "dag_id": DAG_ID,
+                "dag_run_id": context.get("run_id", ""),
+                "task_id": "notify_completion",
+                "metric_name": m["metric_name"],
+                "metric_value": m["metric_value"],
+                "metric_unit": m["metric_unit"],
+                "execution_date": context.get("ds", now.strftime("%Y-%m-%d")),
+                "execution_timestamp": now.isoformat(),
+                "details": json.dumps({}),
+            }
+        ]
         try:
             client.insert_rows_json(table_id, rows)
         except Exception as e:
@@ -263,7 +259,6 @@ with DAG(
     doc_md=__doc__,
     sla_miss_callback=on_sla_miss,
 ) as dag:
-
     _config = _load_project_config()
     _bucket = _config["storage"]["bucket"]
     _project = _config["project"]["id"]

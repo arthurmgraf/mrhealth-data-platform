@@ -128,10 +128,12 @@ class SupersetVerifier:
                 self.session.headers.update({"X-CSRFToken": api_csrf})
 
             # Set headers for JSON API calls
-            self.session.headers.update({
-                "Content-Type": "application/json",
-                "Referer": self.base_url,
-            })
+            self.session.headers.update(
+                {
+                    "Content-Type": "application/json",
+                    "Referer": self.base_url,
+                }
+            )
             return True
 
         except Exception as e:
@@ -152,7 +154,9 @@ class SupersetVerifier:
             duration_ms = (time.time() - start) * 1000
 
             if resp.status_code != 200:
-                return TestResult(test_id, name, False, f"API returned {resp.status_code}", duration_ms)
+                return TestResult(
+                    test_id, name, False, f"API returned {resp.status_code}", duration_ms
+                )
 
             dashboards = resp.json().get("result", [])
             if not dashboards:
@@ -167,12 +171,22 @@ class SupersetVerifier:
             duration2_ms = (time.time() - start2) * 1000
 
             if resp2.status_code != 200:
-                return TestResult(test_id, name, False, f"Dashboard page returned {resp2.status_code}", duration2_ms)
+                return TestResult(
+                    test_id,
+                    name,
+                    False,
+                    f"Dashboard page returned {resp2.status_code}",
+                    duration2_ms,
+                )
 
             if duration2_ms < 5000:
-                return TestResult(test_id, name, True, f"Loaded in {duration2_ms:.0f}ms", duration2_ms)
+                return TestResult(
+                    test_id, name, True, f"Loaded in {duration2_ms:.0f}ms", duration2_ms
+                )
             else:
-                return TestResult(test_id, name, False, f"Slow: {duration2_ms:.0f}ms > 5000ms", duration2_ms)
+                return TestResult(
+                    test_id, name, False, f"Slow: {duration2_ms:.0f}ms > 5000ms", duration2_ms
+                )
 
         except Exception as e:
             return TestResult(test_id, name, False, str(e))
@@ -195,7 +209,9 @@ class SupersetVerifier:
 
             for dash in dashboards:
                 dash_id = dash.get("id")
-                detail_resp = self.session.get(f"{self.base_url}/api/v1/dashboard/{dash_id}", timeout=30)
+                detail_resp = self.session.get(
+                    f"{self.base_url}/api/v1/dashboard/{dash_id}", timeout=30
+                )
                 if detail_resp.status_code == 200:
                     json_metadata = detail_resp.json().get("result", {}).get("json_metadata", "{}")
                     if isinstance(json_metadata, str):
@@ -225,7 +241,9 @@ class SupersetVerifier:
             resp = self.session.get(f"{self.base_url}/api/v1/database/", timeout=10)
             if resp.status_code == 200:
                 # If API works, Superset 4.1 is running and dark mode should be available
-                return TestResult(test_id, name, True, "Superset 4.1+ API accessible (dark mode supported)")
+                return TestResult(
+                    test_id, name, True, "Superset 4.1+ API accessible (dark mode supported)"
+                )
             else:
                 return TestResult(test_id, name, False, f"API check failed: {resp.status_code}")
 
@@ -250,7 +268,9 @@ class SupersetVerifier:
 
             for dash in dashboards:
                 dash_id = dash.get("id")
-                detail_resp = self.session.get(f"{self.base_url}/api/v1/dashboard/{dash_id}", timeout=30)
+                detail_resp = self.session.get(
+                    f"{self.base_url}/api/v1/dashboard/{dash_id}", timeout=30
+                )
                 if detail_resp.status_code == 200:
                     css = detail_resp.json().get("result", {}).get("css", "")
                     if css and "#28a745" in css:
@@ -283,14 +303,18 @@ class SupersetVerifier:
 
             for ds in datasets:
                 ds_id = ds.get("id")
-                detail_resp = self.session.get(f"{self.base_url}/api/v1/dataset/{ds_id}", timeout=30)
+                detail_resp = self.session.get(
+                    f"{self.base_url}/api/v1/dataset/{ds_id}", timeout=30
+                )
                 if detail_resp.status_code == 200:
                     sql = detail_resp.json().get("result", {}).get("sql", "")
                     if sql and ("from_dttm" in sql or "filter_values" in sql or "to_dttm" in sql):
                         jinja_found += 1
 
             if jinja_found > 0:
-                return TestResult(test_id, name, True, f"{jinja_found} datasets with Jinja templates")
+                return TestResult(
+                    test_id, name, True, f"{jinja_found} datasets with Jinja templates"
+                )
             else:
                 return TestResult(test_id, name, False, "No Jinja templates found in datasets")
 
@@ -306,7 +330,9 @@ class SupersetVerifier:
             # Check health endpoint
             resp = self.session.get(f"{self.base_url}/health", timeout=10)
             if resp.status_code == 200:
-                return TestResult(test_id, name, True, "Health endpoint OK (PostgreSQL backend assumed)")
+                return TestResult(
+                    test_id, name, True, "Health endpoint OK (PostgreSQL backend assumed)"
+                )
             else:
                 return TestResult(test_id, name, False, f"Health check returned {resp.status_code}")
 
@@ -360,7 +386,9 @@ class SupersetVerifier:
 
             for ds in datasets:
                 ds_id = ds.get("id")
-                detail_resp = self.session.get(f"{self.base_url}/api/v1/dataset/{ds_id}", timeout=30)
+                detail_resp = self.session.get(
+                    f"{self.base_url}/api/v1/dataset/{ds_id}", timeout=30
+                )
                 if detail_resp.status_code == 200:
                     columns = detail_resp.json().get("result", {}).get("columns", [])
                     if columns:
@@ -398,7 +426,9 @@ class SupersetVerifier:
                     errors.append(f"{ep}: {resp.status_code}")
 
             if not errors:
-                return TestResult(test_id, name, True, "All API endpoints responding without 500 errors")
+                return TestResult(
+                    test_id, name, True, "All API endpoints responding without 500 errors"
+                )
             else:
                 return TestResult(test_id, name, False, f"Server errors: {errors}")
 
@@ -437,7 +467,9 @@ class SupersetVerifier:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Verify Superset Upgrade")
-    parser.add_argument("--url", type=str, default="http://15.235.61.251:30188", help="Superset base URL")
+    parser.add_argument(
+        "--url", type=str, default="http://15.235.61.251:30188", help="Superset base URL"
+    )
     parser.add_argument("--username", type=str, default="admin", help="Superset username")
     parser.add_argument("--password", type=str, help="Superset password")
     args = parser.parse_args()

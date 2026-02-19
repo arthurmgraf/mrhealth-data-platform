@@ -13,6 +13,7 @@ Note: cloud_functions/data_generator/main.py runs on GCP Cloud Functions
 and may not be able to import from scripts/ directly. In that case, keep
 a copy there but reference this file as the canonical source for updates.
 """
+
 from __future__ import annotations
 
 # ============================================================================
@@ -72,24 +73,60 @@ COUNTRIES: list[dict[str, str | int]] = [
 
 CITIES_BY_STATE: dict[int, list[str]] = {
     1: [  # RS
-        "Porto Alegre", "Caxias do Sul", "Pelotas", "Canoas",
-        "Santa Maria", "Gravatai", "Viamao", "Novo Hamburgo",
-        "Sao Leopoldo", "Rio Grande", "Alvorada", "Passo Fundo",
-        "Sapucaia do Sul", "Uruguaiana", "Santa Cruz do Sul",
-        "Cachoeirinha", "Bage", "Bento Goncalves", "Erechim",
+        "Porto Alegre",
+        "Caxias do Sul",
+        "Pelotas",
+        "Canoas",
+        "Santa Maria",
+        "Gravatai",
+        "Viamao",
+        "Novo Hamburgo",
+        "Sao Leopoldo",
+        "Rio Grande",
+        "Alvorada",
+        "Passo Fundo",
+        "Sapucaia do Sul",
+        "Uruguaiana",
+        "Santa Cruz do Sul",
+        "Cachoeirinha",
+        "Bage",
+        "Bento Goncalves",
+        "Erechim",
         "Guaiba",
     ],
     2: [  # SC
-        "Florianopolis", "Joinville", "Blumenau", "Sao Jose",
-        "Chapeco", "Criciuma", "Itajai", "Jaragua do Sul",
-        "Lages", "Palhoca", "Balneario Camboriu", "Brusque",
-        "Tubarao", "Sao Bento do Sul", "Cacador",
+        "Florianopolis",
+        "Joinville",
+        "Blumenau",
+        "Sao Jose",
+        "Chapeco",
+        "Criciuma",
+        "Itajai",
+        "Jaragua do Sul",
+        "Lages",
+        "Palhoca",
+        "Balneario Camboriu",
+        "Brusque",
+        "Tubarao",
+        "Sao Bento do Sul",
+        "Cacador",
     ],
     3: [  # PR
-        "Curitiba", "Londrina", "Maringa", "Ponta Grossa",
-        "Cascavel", "Sao Jose dos Pinhais", "Foz do Iguacu",
-        "Colombo", "Guarapuava", "Paranagua", "Araucaria",
-        "Toledo", "Apucarana", "Pinhais", "Campo Largo",
+        "Curitiba",
+        "Londrina",
+        "Maringa",
+        "Ponta Grossa",
+        "Cascavel",
+        "Sao Jose dos Pinhais",
+        "Foz do Iguacu",
+        "Colombo",
+        "Guarapuava",
+        "Paranagua",
+        "Araucaria",
+        "Toledo",
+        "Apucarana",
+        "Pinhais",
+        "Campo Largo",
     ],
 }
 

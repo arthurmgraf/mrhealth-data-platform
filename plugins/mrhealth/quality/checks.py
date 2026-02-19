@@ -9,6 +9,7 @@ Usage:
     results = checker.run_all_checks()
     checker.save_results(dag_run_id="manual__2026-02-05")
 """
+
 from __future__ import annotations
 
 import json
@@ -16,7 +17,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 from google.cloud import bigquery
@@ -102,8 +103,10 @@ class DataQualityChecker:
         start = time.time()
         rows = self._run_query(sql)
         count = rows[0]["active_units"] if rows else 0
-        result = "pass" if count >= expected_units else (
-            "warn" if count >= expected_units * 0.9 else "fail"
+        result = (
+            "pass"
+            if count >= expected_units
+            else ("warn" if count >= expected_units * 0.9 else "fail")
         )
         return DataQualityResult(
             check_name="completeness_all_units",
@@ -250,9 +253,7 @@ class DataQualityChecker:
             check_sql=sql.strip(),
             result=result,
             expected_value=f"z_score <= {std_dev_threshold}",
-            actual_value=(
-                f"z_score = {z_score:.2f}" if z_score >= 0 else "insufficient data"
-            ),
+            actual_value=(f"z_score = {z_score:.2f}" if z_score >= 0 else "insufficient data"),
             details={
                 "avg_orders": str(rows[0].get("avg_orders", "N/A")) if rows else "N/A",
                 "today_orders": str(rows[0].get("today_orders", "N/A")) if rows else "N/A",
@@ -284,16 +285,18 @@ class DataQualityChecker:
                 )
             except Exception as e:
                 logger.error("Check %s failed with error: %s", check_fn.__name__, e)
-                self.results.append(DataQualityResult(
-                    check_name=check_fn.__name__,
-                    check_category="error",
-                    layer="unknown",
-                    table_name="",
-                    check_sql="",
-                    result="fail",
-                    expected_value="no error",
-                    actual_value=str(e),
-                ))
+                self.results.append(
+                    DataQualityResult(
+                        check_name=check_fn.__name__,
+                        check_category="error",
+                        layer="unknown",
+                        table_name="",
+                        check_sql="",
+                        result="fail",
+                        expected_value="no error",
+                        actual_value=str(e),
+                    )
+                )
         return self.results
 
     def save_results(self, dag_run_id: str = "") -> int:
@@ -301,27 +304,27 @@ class DataQualityChecker:
         if not self.results:
             return 0
         rows = []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for r in self.results:
-            rows.append({
-                "check_id": str(uuid.uuid4())[:12],
-                "check_name": r.check_name,
-                "check_category": r.check_category,
-                "layer": r.layer,
-                "table_name": r.table_name,
-                "check_sql": r.check_sql[:4000],
-                "result": r.result,
-                "expected_value": r.expected_value,
-                "actual_value": r.actual_value,
-                "details": json.dumps(r.details),
-                "execution_date": str(self.execution_date),
-                "execution_timestamp": now.isoformat(),
-                "dag_run_id": dag_run_id,
-                "duration_seconds": r.duration_seconds,
-            })
-        table_id = (
-            f"{self.project_id}.{self.MONITORING_DATASET}.{self.QUALITY_TABLE}"
-        )
+            rows.append(
+                {
+                    "check_id": str(uuid.uuid4())[:12],
+                    "check_name": r.check_name,
+                    "check_category": r.check_category,
+                    "layer": r.layer,
+                    "table_name": r.table_name,
+                    "check_sql": r.check_sql[:4000],
+                    "result": r.result,
+                    "expected_value": r.expected_value,
+                    "actual_value": r.actual_value,
+                    "details": json.dumps(r.details),
+                    "execution_date": str(self.execution_date),
+                    "execution_timestamp": now.isoformat(),
+                    "dag_run_id": dag_run_id,
+                    "duration_seconds": r.duration_seconds,
+                }
+            )
+        table_id = f"{self.project_id}.{self.MONITORING_DATASET}.{self.QUALITY_TABLE}"
         errors = self.client.insert_rows_json(table_id, rows)
         if errors:
             logger.error("Erro ao salvar resultados: %s", errors)

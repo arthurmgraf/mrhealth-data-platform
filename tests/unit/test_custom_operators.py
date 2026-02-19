@@ -2,12 +2,15 @@
 Unit tests for custom Airflow operators and sensors.
 Tests BigQueryDataQualityOperator, GCSCleanupOperator, BigQueryFreshnessSensor.
 """
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+pytest.importorskip("airflow.models", reason="Airflow not available (requires Python 3.11)")
 
 
 class TestBigQueryDataQualityOperator:
@@ -77,12 +80,12 @@ class TestGCSCleanupOperator:
         client.bucket.return_value = bucket
 
         old_blob = MagicMock()
-        old_blob.updated = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        old_blob.updated = datetime(2025, 1, 1, tzinfo=UTC)
         old_blob.size = 1024
         old_blob.name = "raw/csv_sales/old_file.csv"
 
         new_blob = MagicMock()
-        new_blob.updated = datetime(2026, 2, 1, tzinfo=timezone.utc)
+        new_blob.updated = datetime(2026, 2, 1, tzinfo=UTC)
         new_blob.size = 2048
         new_blob.name = "raw/csv_sales/new_file.csv"
 
@@ -112,7 +115,7 @@ class TestGCSCleanupOperator:
         client.bucket.return_value = bucket
 
         old_blob = MagicMock()
-        old_blob.updated = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        old_blob.updated = datetime(2025, 1, 1, tzinfo=UTC)
         old_blob.size = 1024
         bucket.list_blobs.return_value = [old_blob]
 

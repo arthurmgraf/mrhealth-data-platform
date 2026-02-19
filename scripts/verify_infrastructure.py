@@ -23,8 +23,9 @@ Date: January 2026
 import argparse
 import os
 import sys
-from google.cloud import storage, bigquery
+
 from google.api_core import exceptions
+from google.cloud import bigquery, storage
 
 
 def check_gcs_bucket(bucket_name, project_id=None):
@@ -41,17 +42,12 @@ def check_gcs_bucket(bucket_name, project_id=None):
         print(f"     Created: {bucket.time_created}")
 
         # Check for expected prefixes
-        expected_prefixes = [
-            "raw/csv_sales/",
-            "raw/reference_data/",
-            "bronze/",
-            "quarantine/"
-        ]
+        expected_prefixes = ["raw/csv_sales/", "raw/reference_data/", "bronze/", "quarantine/"]
 
         blobs = list(storage_client.list_blobs(bucket_name, max_results=100))
         blob_names = [blob.name for blob in blobs]
 
-        print(f"\n  [INFO] Checking prefix structure...")
+        print("\n  [INFO] Checking prefix structure...")
         for prefix in expected_prefixes:
             matches = [name for name in blob_names if name.startswith(prefix)]
             if matches:
@@ -80,7 +76,7 @@ def check_bigquery_datasets(project_id):
             "mrhealth_bronze",
             "mrhealth_silver",
             "mrhealth_gold",
-            "mrhealth_monitoring"
+            "mrhealth_monitoring",
         ]
 
         datasets = list(bq_client.list_datasets())
@@ -117,7 +113,7 @@ def check_bigquery_tables(project_id):
             "mrhealth_bronze.products",
             "mrhealth_bronze.units",
             "mrhealth_bronze.states",
-            "mrhealth_bronze.countries"
+            "mrhealth_bronze.countries",
         ]
 
         all_exist = True
@@ -153,10 +149,12 @@ def check_service_accounts(project_id):
 
 def load_config():
     """Load project configuration from YAML."""
-    import yaml
     from pathlib import Path
+
+    import yaml
+
     config_path = Path("config/project_config.yaml")
-    with open(config_path, 'r') as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
     return config
 
@@ -165,14 +163,16 @@ def main():
     # Load config
     try:
         config = load_config()
-        default_project = config['project']['id']
-        default_bucket = config['storage']['bucket']
+        default_project = config["project"]["id"]
+        default_bucket = config["storage"]["bucket"]
     except Exception as e:
         print(f"[WARNING] Could not load config: {e}")
         default_project = os.environ.get("GCP_PROJECT_ID", "")
         default_bucket = os.environ.get("GCS_BUCKET_NAME", "")
         if not default_project or not default_bucket:
-            print("[ERROR] Config file not found and env vars GCP_PROJECT_ID/GCS_BUCKET_NAME not set.")
+            print(
+                "[ERROR] Config file not found and env vars GCP_PROJECT_ID/GCS_BUCKET_NAME not set."
+            )
             print("Set them in .env or export them before running this script.")
             sys.exit(1)
 
@@ -182,12 +182,12 @@ def main():
     parser.add_argument(
         "--project",
         default=default_project,
-        help=f"GCP project ID (default from config: {default_project})"
+        help=f"GCP project ID (default from config: {default_project})",
     )
     parser.add_argument(
         "--bucket",
         default=default_bucket,
-        help=f"GCS bucket name (default from config: {default_bucket})"
+        help=f"GCS bucket name (default from config: {default_bucket})",
     )
 
     args = parser.parse_args()
@@ -202,7 +202,7 @@ def main():
     gcs_ok = check_gcs_bucket(args.bucket, project_id=args.project)
     datasets_ok = check_bigquery_datasets(args.project)
     tables_ok = check_bigquery_tables(args.project)
-    sa_ok = check_service_accounts(args.project)
+    check_service_accounts(args.project)
 
     # Summary
     print("\n============================================================")
@@ -211,7 +211,7 @@ def main():
     print(f"  GCS Bucket:      {'[OK] PASS' if gcs_ok else '[FAIL] FAIL'}")
     print(f"  BQ Datasets:     {'[OK] PASS' if datasets_ok else '[FAIL] FAIL'}")
     print(f"  BQ Tables:       {'[OK] PASS' if tables_ok else '[WARN]  PENDING'}")
-    print(f"  Service Accounts: [OK] MANUAL CHECK")
+    print("  Service Accounts: [OK] MANUAL CHECK")
     print("============================================================")
 
     if gcs_ok and datasets_ok:

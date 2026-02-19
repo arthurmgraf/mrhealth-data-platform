@@ -12,9 +12,8 @@ on:
         required: true
         type: choice
         options:
-          - dev
           - prod
-        default: dev
+        default: prod
       action:
         description: "Terraform action"
         required: true

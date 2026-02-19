@@ -18,19 +18,20 @@ Tasks:
 Author: Arthur Graf
 Date: February 2026
 """
+
 from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
 from typing import Any
 
-from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import BranchPythonOperator, PythonOperator
 from google.cloud import bigquery
-
 from mrhealth.callbacks.alerts import on_task_failure
 from mrhealth.config.loader import get_project_id, load_config
+
+from airflow import DAG
 
 logger = logging.getLogger(__name__)
 
@@ -171,7 +172,6 @@ with DAG(
     tags=TAGS,
     doc_md=__doc__,
 ) as dag:
-
     detect = PythonOperator(
         task_id="detect_gaps",
         python_callable=detect_gaps,

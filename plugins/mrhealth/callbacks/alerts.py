@@ -5,13 +5,14 @@ Callbacks for SLA miss, task failure, and quality failure.
 In production, these would send to Slack/PagerDuty.
 Here they log to Airflow + save metrics to BigQuery pipeline_metrics.
 """
+
 from __future__ import annotations
 
 import json
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from google.cloud import bigquery
@@ -33,19 +34,21 @@ def _save_metric(
 ) -> None:
     client = bigquery.Client(project=project_id)
     table_id = f"{project_id}.mrhealth_monitoring.pipeline_metrics"
-    now = datetime.now(timezone.utc)
-    rows = [{
-        "metric_id": str(uuid.uuid4())[:12],
-        "dag_id": dag_id,
-        "dag_run_id": dag_run_id,
-        "task_id": task_id,
-        "metric_name": metric_name,
-        "metric_value": metric_value,
-        "metric_unit": metric_unit,
-        "execution_date": now.strftime("%Y-%m-%d"),
-        "execution_timestamp": now.isoformat(),
-        "details": json.dumps(details or {}),
-    }]
+    now = datetime.now(UTC)
+    rows = [
+        {
+            "metric_id": str(uuid.uuid4())[:12],
+            "dag_id": dag_id,
+            "dag_run_id": dag_run_id,
+            "task_id": task_id,
+            "metric_name": metric_name,
+            "metric_value": metric_value,
+            "metric_unit": metric_unit,
+            "execution_date": now.strftime("%Y-%m-%d"),
+            "execution_timestamp": now.isoformat(),
+            "details": json.dumps(details or {}),
+        }
+    ]
     errors = client.insert_rows_json(table_id, rows)
     if errors:
         logger.error("Erro ao salvar metrica: %s", errors)

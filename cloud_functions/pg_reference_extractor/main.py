@@ -13,14 +13,13 @@ import json
 import os
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import functions_framework
 import paramiko
 import psycopg2
 from google.cloud import secretmanager, storage
 from sshtunnel import SSHTunnelForwarder
-
 
 # --- Configuração ---
 PROJECT_ID = os.environ.get("PROJECT_ID", os.environ.get("GCP_PROJECT_ID", ""))
@@ -125,7 +124,9 @@ def extract_with_retry(secrets: dict) -> dict:
                 remote_bind_address=("127.0.0.1", PG_NODE_PORT),
                 local_bind_address=("127.0.0.1",),
             ) as tunnel:
-                print(f"  [OK] SSH tunnel: {secrets['ssh_host']}:{PG_NODE_PORT} -> localhost:{tunnel.local_bind_port}")
+                print(
+                    f"  [OK] SSH tunnel: {secrets['ssh_host']}:{PG_NODE_PORT} -> localhost:{tunnel.local_bind_port}"
+                )
 
                 conn = psycopg2.connect(
                     host="127.0.0.1",
@@ -157,7 +158,7 @@ def extract_with_retry(secrets: dict) -> dict:
 
                 cursor.close()
                 conn.close()
-                print(f"  [OK] Connections closed")
+                print("  [OK] Connections closed")
 
             return results
 
@@ -176,30 +177,30 @@ def extract_with_retry(secrets: dict) -> dict:
 @functions_framework.http
 def extract_reference_data(request):
     extraction_id = str(uuid.uuid4())[:8]
-    start_time = datetime.now(timezone.utc)
+    start_time = datetime.now(UTC)
 
     print(f"[START] Extraction {extraction_id} at {start_time.isoformat()}")
 
     try:
         sm_client = secretmanager.SecretManagerServiceClient()
         secrets = get_all_secrets(sm_client)
-        print(f"  [OK] Credentials loaded from Secret Manager")
+        print("  [OK] Credentials loaded from Secret Manager")
 
         results = extract_with_retry(secrets)
 
     except Exception as e:
-        duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+        duration = (datetime.now(UTC) - start_time).total_seconds()
         error_log = {
             "extraction_id": extraction_id,
             "status": "error",
             "error": str(e),
             "duration_seconds": round(duration, 2),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         print(f"[ERROR] {json.dumps(error_log)}")
         return json.dumps(error_log), 500
 
-    duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+    duration = (datetime.now(UTC) - start_time).total_seconds()
     total_rows = sum(r["rows"] for r in results.values())
 
     success_log = {
@@ -209,7 +210,7 @@ def extract_reference_data(request):
         "tables_skipped": [t for t, r in results.items() if r["status"] == "skipped"],
         "total_rows": total_rows,
         "duration_seconds": round(duration, 2),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
     print(f"[DONE] {json.dumps(success_log)}")
 

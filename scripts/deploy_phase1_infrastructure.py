@@ -20,25 +20,26 @@ Date: January 2026
 """
 
 import sys
-import yaml
 from pathlib import Path
-from google.cloud import bigquery
+
+import yaml
 from google.api_core import exceptions
+from google.cloud import bigquery
 
 
 def load_config():
     """Load project configuration from YAML."""
     config_path = Path("config/project_config.yaml")
-    with open(config_path, 'r') as f:
+    with open(config_path) as f:
         config = yaml.safe_load(f)
     return config
 
 
 def create_bigquery_datasets(project_id, location="US"):
     """Create BigQuery datasets for Bronze, Silver, Gold, Monitoring."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Creating BigQuery Datasets")
-    print("="*60)
+    print("=" * 60)
 
     try:
         client = bigquery.Client(project=project_id)
@@ -47,7 +48,7 @@ def create_bigquery_datasets(project_id, location="US"):
             ("mrhealth_bronze", "Bronze layer: schema-enforced, deduplicated data", "bronze"),
             ("mrhealth_silver", "Silver layer: cleaned, enriched, normalized data", "silver"),
             ("mrhealth_gold", "Gold layer: star schema dimensional model", "gold"),
-            ("mrhealth_monitoring", "Pipeline monitoring: logs and quality checks", "monitoring")
+            ("mrhealth_monitoring", "Pipeline monitoring: logs and quality checks", "monitoring"),
         ]
 
         created_count = 0
@@ -78,9 +79,9 @@ def create_bigquery_datasets(project_id, location="US"):
 
 def create_bronze_tables(project_id):
     """Create Bronze layer tables."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Creating Bronze Tables")
-    print("="*60)
+    print("=" * 60)
 
     try:
         client = bigquery.Client(project=project_id)
@@ -143,8 +144,7 @@ def create_bronze_tables(project_id):
             # Partition by _ingest_date for orders and order_items
             if table_name in ["orders", "order_items"]:
                 table.time_partitioning = bigquery.TimePartitioning(
-                    type_=bigquery.TimePartitioningType.DAY,
-                    field="_ingest_date"
+                    type_=bigquery.TimePartitioningType.DAY, field="_ingest_date"
                 )
 
             try:
@@ -166,16 +166,16 @@ def create_bronze_tables(project_id):
 
 
 def main():
-    print("="*60)
+    print("=" * 60)
     print("MR. HEALTH Data Platform -- Phase 1 Infrastructure Deployment")
-    print("="*60)
+    print("=" * 60)
 
     # Load configuration
     try:
         config = load_config()
-        project_id = config['project']['id']
-        bucket_name = config['storage']['bucket']
-        location = config['bigquery']['location']
+        project_id = config["project"]["id"]
+        bucket_name = config["storage"]["bucket"]
+        location = config["bigquery"]["location"]
 
         print(f"Project:  {project_id}")
         print(f"Bucket:   gs://{bucket_name}/")
@@ -189,12 +189,12 @@ def main():
     tables_ok = create_bronze_tables(project_id)
 
     # Summary
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEPLOYMENT SUMMARY")
-    print("="*60)
+    print("=" * 60)
     print(f"  BigQuery Datasets: {'[OK]' if datasets_ok else '[FAILED]'}")
     print(f"  Bronze Tables:     {'[OK]' if tables_ok else '[FAILED]'}")
-    print("="*60)
+    print("=" * 60)
 
     if datasets_ok and tables_ok:
         print("\n[SUCCESS] Phase 1 infrastructure deployed!")

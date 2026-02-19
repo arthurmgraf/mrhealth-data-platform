@@ -27,7 +27,7 @@ def ssh_config():
     key_file = os.environ.get("PG_SSH_KEY_FILE", "")
     key_content = ""
     if key_file and os.path.exists(key_file):
-        with open(key_file, "r") as f:
+        with open(key_file) as f:
             key_content = f.read()
     return {
         "host": os.environ.get("PG_SSH_HOST"),
@@ -47,7 +47,6 @@ def pg_config():
 
 
 class TestSSHConnectivity:
-
     @pytest.mark.integration
     def test_ssh_connection(self, ssh_config):
         import paramiko
@@ -93,7 +92,6 @@ class TestSSHConnectivity:
 
 
 class TestPostgreSQLData:
-
     @pytest.mark.integration
     def test_table_row_counts(self, pg_config):
         import psycopg2

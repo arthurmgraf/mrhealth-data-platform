@@ -4,6 +4,7 @@ BigQuery Freshness Sensor
 Custom Sensor that waits until fresh data exists in a BigQuery table.
 More semantic than BigQueryCheckOperator for freshness verification.
 """
+
 from __future__ import annotations
 
 import logging

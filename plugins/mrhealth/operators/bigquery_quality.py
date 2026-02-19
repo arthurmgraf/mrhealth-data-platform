@@ -4,13 +4,14 @@ BigQuery Data Quality Operator
 Custom Airflow Operator that executes a SQL quality check against BigQuery,
 evaluates the result, and optionally records it in the monitoring table.
 """
+
 from __future__ import annotations
 
 import json
 import logging
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from airflow.models import BaseOperator
@@ -57,10 +58,7 @@ class BigQueryDataQualityOperator(BaseOperator):
         rows = list(job.result())
         duration = round(time.time() - start, 2)
 
-        if rows:
-            check_passed = bool(rows[0][0])
-        else:
-            check_passed = False
+        check_passed = bool(rows[0][0]) if rows else False
 
         result = "pass" if check_passed == self.expected_result else "fail"
 
@@ -92,22 +90,24 @@ class BigQueryDataQualityOperator(BaseOperator):
         context: dict[str, Any],
     ) -> None:
         table_id = f"{self.project_id}.mrhealth_monitoring.data_quality_log"
-        rows = [{
-            "check_id": str(uuid.uuid4())[:12],
-            "check_name": self.check_name,
-            "check_category": self.check_category,
-            "layer": self.layer,
-            "table_name": self.table_name,
-            "check_sql": self.sql[:4000],
-            "result": result,
-            "expected_value": str(self.expected_result),
-            "actual_value": result,
-            "details": json.dumps({}),
-            "execution_date": context["ds"],
-            "execution_timestamp": datetime.now(timezone.utc).isoformat(),
-            "dag_run_id": context.get("run_id", ""),
-            "duration_seconds": duration,
-        }]
+        rows = [
+            {
+                "check_id": str(uuid.uuid4())[:12],
+                "check_name": self.check_name,
+                "check_category": self.check_category,
+                "layer": self.layer,
+                "table_name": self.table_name,
+                "check_sql": self.sql[:4000],
+                "result": result,
+                "expected_value": str(self.expected_result),
+                "actual_value": result,
+                "details": json.dumps({}),
+                "execution_date": context["ds"],
+                "execution_timestamp": datetime.now(UTC).isoformat(),
+                "dag_run_id": context.get("run_id", ""),
+                "duration_seconds": duration,
+            }
+        ]
         errors = client.insert_rows_json(table_id, rows)
         if errors:
             logger.error("Erro ao salvar resultado: %s", errors)

@@ -21,7 +21,6 @@ import sys
 
 from google.cloud import secretmanager
 
-
 SECRETS = [
     ("pg-host", "IP ou hostname do servidor K3s"),
     ("pg-ssh-user", "Usuário SSH para acesso ao K3s"),

@@ -16,20 +16,21 @@ Tasks:
 Author: Arthur Graf
 Date: February 2026
 """
+
 from __future__ import annotations
 
 import json
 import logging
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from airflow import DAG
 from airflow.operators.python import PythonOperator
 from google.cloud import bigquery, storage
-
 from mrhealth.callbacks.alerts import on_task_failure
 from mrhealth.config.loader import get_project_id, load_config
+
+from airflow import DAG
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +52,12 @@ def calculate_storage(**context: Any) -> dict[str, Any]:
 
     bq_client = bigquery.Client(project=project_id)
     bq_bytes = 0
-    for dataset_name in ["mrhealth_bronze", "mrhealth_silver",
-                         "mrhealth_gold", "mrhealth_monitoring"]:
+    for dataset_name in [
+        "mrhealth_bronze",
+        "mrhealth_silver",
+        "mrhealth_gold",
+        "mrhealth_monitoring",
+    ]:
         dataset_ref = bq_client.dataset(dataset_name)
         tables = list(bq_client.list_tables(dataset_ref))
         for table_ref in tables:
@@ -72,8 +77,13 @@ def calculate_storage(**context: Any) -> dict[str, Any]:
         "bq_usage_pct": round(bq_gb / limits.get("bq_storage_gb", 10) * 100, 1),
     }
 
-    logger.info("Storage: GCS=%.2f GB (%.1f%%), BQ=%.2f GB (%.1f%%)",
-                gcs_gb, result["gcs_usage_pct"], bq_gb, result["bq_usage_pct"])
+    logger.info(
+        "Storage: GCS=%.2f GB (%.1f%%), BQ=%.2f GB (%.1f%%)",
+        gcs_gb,
+        result["gcs_usage_pct"],
+        bq_gb,
+        result["bq_usage_pct"],
+    )
 
     context["ti"].xcom_push(key="storage_snapshot", value=result)
     return result
@@ -98,8 +108,9 @@ def archive_bronze(**context: Any) -> dict[str, Any]:
         job.result()
         affected = job.num_dml_affected_rows or 0
         total_deleted += affected
-        logger.info("Deleted %d rows from bronze.%s (older than %d days)",
-                     affected, table, max_days)
+        logger.info(
+            "Deleted %d rows from bronze.%s (older than %d days)", affected, table, max_days
+        )
 
     return {"total_deleted": total_deleted, "max_days": max_days}
 
@@ -110,7 +121,7 @@ def cleanup_gcs(**context: Any) -> dict[str, Any]:
     project_id = get_project_id()
     bucket_name = config["storage"]["bucket"]
     max_days = config.get("retention", {}).get("gcs_raw_max_days", 60)
-    cutoff = datetime.now(timezone.utc) - timedelta(days=max_days)
+    cutoff = datetime.now(UTC) - timedelta(days=max_days)
 
     client = storage.Client(project=project_id)
     bucket = client.bucket(bucket_name)
@@ -123,8 +134,12 @@ def cleanup_gcs(**context: Any) -> dict[str, Any]:
             blob.delete()
             deleted += 1
 
-    logger.info("Deleted %d GCS files (%.2f MB, older than %d days)",
-                deleted, deleted_bytes / (1024**2), max_days)
+    logger.info(
+        "Deleted %d GCS files (%.2f MB, older than %d days)",
+        deleted,
+        deleted_bytes / (1024**2),
+        max_days,
+    )
 
     return {"deleted_files": deleted, "deleted_bytes": deleted_bytes}
 
@@ -148,8 +163,11 @@ def verify_free_tier(**context: Any) -> None:
     if alerts:
         logger.warning("FREE TIER ALERT: %s", " | ".join(alerts))
     else:
-        logger.info("Free Tier OK: GCS=%.1f%%, BQ=%.1f%%",
-                     snapshot["gcs_usage_pct"], snapshot["bq_usage_pct"])
+        logger.info(
+            "Free Tier OK: GCS=%.1f%%, BQ=%.1f%%",
+            snapshot["gcs_usage_pct"],
+            snapshot["bq_usage_pct"],
+        )
 
 
 def save_usage_report(**context: Any) -> None:
@@ -160,26 +178,28 @@ def save_usage_report(**context: Any) -> None:
 
     project_id = get_project_id()
     client = bigquery.Client(project=project_id)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
-    rows = [{
-        "snapshot_id": str(uuid.uuid4())[:12],
-        "snapshot_date": now.strftime("%Y-%m-%d"),
-        "snapshot_timestamp": now.isoformat(),
-        "gcs_storage_bytes": snapshot["gcs_storage_bytes"],
-        "gcs_storage_gb": snapshot["gcs_storage_gb"],
-        "gcs_limit_gb": snapshot["gcs_limit_gb"],
-        "gcs_usage_pct": snapshot["gcs_usage_pct"],
-        "bq_storage_bytes": snapshot["bq_storage_bytes"],
-        "bq_storage_gb": snapshot["bq_storage_gb"],
-        "bq_limit_gb": snapshot["bq_limit_gb"],
-        "bq_usage_pct": snapshot["bq_usage_pct"],
-        "bq_query_bytes_month": 0,
-        "bq_query_tb_month": 0.0,
-        "bq_query_limit_tb": 1.0,
-        "bq_query_usage_pct": 0.0,
-        "details": json.dumps({"source": "data_retention_dag"}),
-    }]
+    rows = [
+        {
+            "snapshot_id": str(uuid.uuid4())[:12],
+            "snapshot_date": now.strftime("%Y-%m-%d"),
+            "snapshot_timestamp": now.isoformat(),
+            "gcs_storage_bytes": snapshot["gcs_storage_bytes"],
+            "gcs_storage_gb": snapshot["gcs_storage_gb"],
+            "gcs_limit_gb": snapshot["gcs_limit_gb"],
+            "gcs_usage_pct": snapshot["gcs_usage_pct"],
+            "bq_storage_bytes": snapshot["bq_storage_bytes"],
+            "bq_storage_gb": snapshot["bq_storage_gb"],
+            "bq_limit_gb": snapshot["bq_limit_gb"],
+            "bq_usage_pct": snapshot["bq_usage_pct"],
+            "bq_query_bytes_month": 0,
+            "bq_query_tb_month": 0.0,
+            "bq_query_limit_tb": 1.0,
+            "bq_query_usage_pct": 0.0,
+            "details": json.dumps({"source": "data_retention_dag"}),
+        }
+    ]
 
     table_id = f"{project_id}.mrhealth_monitoring.free_tier_usage"
     errors = client.insert_rows_json(table_id, rows)
@@ -210,7 +230,6 @@ with DAG(
     tags=TAGS,
     doc_md=__doc__,
 ) as dag:
-
     calc = PythonOperator(
         task_id="calculate_storage",
         python_callable=calculate_storage,
