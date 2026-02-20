@@ -74,14 +74,14 @@ jobs:
         continue-on-error: true
 
       - name: Upload plan artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: tfplan-${{ github.event.inputs.environment }}
           path: infra/environments/${{ github.event.inputs.environment }}/**/tfplan
           retention-days: 1
 
       - name: Upload plan output
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: plan-output-${{ github.event.inputs.environment }}
           path: infra/environments/${{ github.event.inputs.environment }}/plan_output.txt
