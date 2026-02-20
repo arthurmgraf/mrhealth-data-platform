@@ -28,6 +28,12 @@ A comprehensive security audit was conducted against 30+ OWASP attack vector cat
 
 **Trade-off:** MEDIUM findings (e.g., B608 f-string SQL on developer-controlled constants) are visible in the artifact report but do not block CI. Only HIGH severity findings block the pipeline. This prevents false-positive CI failures from known-safe patterns while maintaining visibility.
 
+### D3b: pip-audit - Informational Mode (MEDIUM)
+
+**Decision:** pip-audit runs in informational mode (`|| true`) with report uploaded as artifact. Does not block CI.
+
+**Rationale:** 51 known vulnerabilities are in transitive dependencies of apache-airflow 2.8.1 (cryptography 41.0.7, werkzeug 2.2.3, flask-appbuilder 4.3.10, aiohttp 3.10.11). These cannot be resolved without upgrading Airflow to 3.x, which is a major migration beyond current scope. The report remains visible in CI artifacts for tracking.
+
 ### D4: PostgreSQL Service - ClusterIP (HIGH)
 
 **Decision:** Change reference PostgreSQL from NodePort (30432) to ClusterIP. Access only via SSH tunnel from Cloud Functions.
