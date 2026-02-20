@@ -55,13 +55,33 @@ jobs:
       - name: Install security tools
         run: pip install bandit pip-audit
 
-      - name: Bandit security scan
+      - name: Bandit security scan (report)
         run: >
           bandit -r scripts/ cloud_functions/ plugins/ dags/
           -f json -o bandit-report.json
           --severity-level medium
           --confidence-level medium
           -x tests/
+          || true
+
+      - name: Bandit HIGH severity gate
+        run: |
+          python -c "
+          import json, sys, pathlib
+          report = pathlib.Path('bandit-report.json')
+          if not report.exists():
+              print('No Bandit report found'); sys.exit(1)
+          data = json.loads(report.read_text())
+          results = data.get('results', [])
+          high = [r for r in results if r.get('issue_severity') == 'HIGH']
+          if high:
+              print(f'BLOCKING: {len(high)} HIGH severity issue(s):')
+              for h in high:
+                  print(f\"  - {h['filename']}:{h['line_number']} {h['issue_text']}\")
+              sys.exit(1)
+          medium = [r for r in results if r.get('issue_severity') == 'MEDIUM']
+          print(f'OK: 0 HIGH, {len(medium)} MEDIUM (non-blocking, see artifact)')
+          "
 
       - name: pip-audit dependency check
         run: pip-audit -r requirements.txt

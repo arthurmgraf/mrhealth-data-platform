@@ -24,9 +24,9 @@ A comprehensive security audit was conducted against 30+ OWASP attack vector cat
 
 ### D3: CI Pipeline - Blocking Security Scans (HIGH)
 
-**Decision:** Remove `|| true` from Bandit and `continue-on-error: true` from Gitleaks. Security scan failures now block the CI pipeline.
+**Decision:** Two-step Bandit approach: scan at MEDIUM severity (report generation, non-blocking), then a separate gate step that blocks CI only on HIGH severity findings. Gitleaks runs without `continue-on-error`.
 
-**Trade-off:** May cause false-positive CI failures. Mitigated by running MEDIUM+ severity only and using `# nosec` annotations for known safe patterns.
+**Trade-off:** MEDIUM findings (e.g., B608 f-string SQL on developer-controlled constants) are visible in the artifact report but do not block CI. Only HIGH severity findings block the pipeline. This prevents false-positive CI failures from known-safe patterns while maintaining visibility.
 
 ### D4: PostgreSQL Service - ClusterIP (HIGH)
 

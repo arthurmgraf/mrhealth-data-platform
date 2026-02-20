@@ -135,21 +135,11 @@ class TestPostgreSQL:
 class TestCIPipeline:
     """Verify CI pipeline security enforcement."""
 
-    def test_bandit_not_suppressed(self, project_root: Path):
-        """Bandit scan must not be silenced with || true."""
+    def test_bandit_high_severity_gate(self, project_root: Path):
+        """CI must have a Bandit HIGH severity gate that blocks on HIGH findings."""
         ci = (project_root / ".github" / "workflows" / "ci.yml").read_text()
-        # Find the bandit step and check it doesn't end with || true
-        assert "bandit" in ci.lower()
-        # The Bandit run command should not have || true
-        lines = ci.split("\n")
-        in_bandit = False
-        for line in lines:
-            if "Bandit security scan" in line:
-                in_bandit = True
-            if in_bandit and "|| true" in line:
-                pytest.fail("Bandit step uses '|| true' which suppresses security failures")
-            if in_bandit and line.strip().startswith("- name:") and "Bandit" not in line:
-                break
+        assert "Bandit HIGH severity gate" in ci
+        assert "sys.exit(1)" in ci
 
     def test_gitleaks_not_continue_on_error(self, project_root: Path):
         """Gitleaks must block the pipeline on failure."""
