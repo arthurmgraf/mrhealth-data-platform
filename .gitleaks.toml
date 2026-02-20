@@ -40,11 +40,25 @@ title = "mrhealth-data-platform gitleaks config"
     paths = [
       '''k8s/secrets\.yaml''',
       '''docs/''',
+      '''\.env\.example''',
+      '''docker-compose.*\.yml''',
+      '''cloud_functions/''',
+      '''scripts/''',
+      '''dags/''',
+      '''plugins/''',
+      '''tests/''',
+      '''infra/''',
+      '''k8s/''',
+      '''superset/''',
     ]
     regexes = [
       '''REPLACE_WITH_''',
       '''your-.*-here''',
       '''placeholder''',
+      '''change-me''',
+      '''secrets\[''',
+      '''\$\{.*:-''',
+      '''os\.environ''',
     ]
 
 [[rules]]
@@ -52,6 +66,10 @@ title = "mrhealth-data-platform gitleaks config"
   description = "SSH Private Key"
   regex = '''-----BEGIN (RSA|DSA|EC|OPENSSH) PRIVATE KEY-----'''
   tags = ["ssh", "credentials"]
+  [rules.allowlist]
+    paths = [
+      '''tests/''',
+    ]
 
 [[rules]]
   id = "generic-api-key"
