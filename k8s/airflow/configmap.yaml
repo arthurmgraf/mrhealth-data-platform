@@ -7,9 +7,5 @@ data:
   AIRFLOW__CORE__EXECUTOR: "LocalExecutor"
   AIRFLOW__CORE__LOAD_EXAMPLES: "false"
   AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
-  AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
-  # IMPORTANT: Replace with a secure key before deployment (use: openssl rand -hex 32)
-  AIRFLOW__WEBSERVER__SECRET_KEY: "REPLACE_WITH_SECURE_KEY"
+  AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "false"
   AIRFLOW__WEBSERVER__WTF_CSRF_ENABLED: "true"
-  # IMPORTANT: Use Kubernetes secrets for database credentials in production
-  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://airflow:REPLACE_WITH_SECRET@airflow-postgres:5432/airflow"

@@ -46,6 +46,8 @@ ITEM_PEDIDO_COLUMNS = ["Id_Pedido", "Id_Item_Pedido", "Id_Produto", "Qtd", "Vlr_
 VALID_STATUSES = {"Finalizado", "Pendente", "Cancelado"}
 VALID_ORDER_TYPES = {"Loja Online", "Loja Fisica"}
 
+MAX_CSV_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+
 
 def read_csv_from_gcs(bucket_name: str, blob_name: str) -> pd.DataFrame:
     """Read a CSV file from GCS into a pandas DataFrame."""
@@ -211,6 +213,19 @@ def process_csv(cloud_event):
         print(f"  [SKIP] Not a sales CSV: {file_name}")
         return
 
+    # Enforce file size limit to prevent memory exhaustion
+    gcs_client = storage.Client(project=PROJECT)
+    gcs_bucket = gcs_client.bucket(bucket_name)
+    blob_meta = gcs_bucket.blob(file_name)
+    blob_meta.reload()
+    if blob_meta.size and blob_meta.size > MAX_CSV_SIZE_BYTES:
+        error_msg = (
+            f"File exceeds {MAX_CSV_SIZE_BYTES // (1024 * 1024)}MB limit ({blob_meta.size:,} bytes)"
+        )
+        print(f"  [REJECT] {error_msg}")
+        quarantine_file(bucket_name, file_name, error_msg)
+        return
+
     # Determine file type
     base_name = file_name.split("/")[-1]
 
@@ -240,6 +255,5 @@ def process_csv(cloud_event):
         print(f"  [OK] Loaded {rows_loaded} rows into {BQ_DATASET}.{table}")
 
     except Exception as e:
-        error_msg = f"Processing failed: {str(e)}"
-        print(f"  [ERROR] {error_msg}")
-        quarantine_file(bucket_name, file_name, error_msg)
+        print(f"  [ERROR] Processing failed: {e}")
+        quarantine_file(bucket_name, file_name, "Processing failed. See Cloud Logging for details.")

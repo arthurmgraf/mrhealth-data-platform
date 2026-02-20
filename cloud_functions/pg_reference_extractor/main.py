@@ -190,15 +190,16 @@ def extract_reference_data(request):
 
     except Exception as e:
         duration = (datetime.now(UTC) - start_time).total_seconds()
-        error_log = {
+        # Full error logged to Cloud Logging (not returned to caller)
+        print(f"[ERROR] Extraction {extraction_id} failed: {e}")
+        error_response = {
             "extraction_id": extraction_id,
             "status": "error",
-            "error": str(e),
+            "message": "Internal processing error. Check Cloud Logging for details.",
             "duration_seconds": round(duration, 2),
             "timestamp": datetime.now(UTC).isoformat(),
         }
-        print(f"[ERROR] {json.dumps(error_log)}")
-        return json.dumps(error_log), 500
+        return json.dumps(error_response), 500
 
     duration = (datetime.now(UTC) - start_time).total_seconds()
     total_rows = sum(r["rows"] for r in results.values())

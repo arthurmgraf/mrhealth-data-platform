@@ -62,28 +62,12 @@ jobs:
           --severity-level medium
           --confidence-level medium
           -x tests/
-          || true
-
-      - name: Check for high severity issues
-        run: |
-          python3 -c "
-          import json, sys
-          with open('bandit-report.json') as f:
-              report = json.load(f)
-          high = [r for r in report.get('results', []) if r['issue_severity'] == 'HIGH']
-          if high:
-              for h in high:
-                  print(f\"HIGH: {h['filename']}:{h['line_number']} - {h['issue_text']}\")
-              sys.exit(1)
-          print('No high-severity issues found')
-          "
 
       - name: pip-audit dependency check
-        run: pip-audit -r requirements.txt --ignore-vuln PYSEC-2024-* || true
+        run: pip-audit -r requirements.txt
 
       - name: Gitleaks secret detection
         uses: gitleaks/gitleaks-action@v2
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

@@ -69,15 +69,29 @@ class DataQualityChecker:
         job = self.client.query(sql)
         return [dict(row) for row in job.result()]
 
+    def _run_query_parameterized(
+        self,
+        sql: str,
+        params: list[bigquery.ScalarQueryParameter],
+    ) -> list[dict[str, Any]]:
+        job_config = bigquery.QueryJobConfig(query_parameters=params)
+        job = self.client.query(sql, job_config=job_config)
+        return [dict(row) for row in job.result()]
+
+    def _date_param(self) -> list[bigquery.ScalarQueryParameter]:
+        return [
+            bigquery.ScalarQueryParameter("execution_date", "DATE", self.execution_date),
+        ]
+
     def check_freshness(self) -> DataQualityResult:
         """Verifica se existem dados de hoje em fact_sales."""
         sql = f"""
         SELECT COUNT(*) as cnt
         FROM `{self.project_id}.mrhealth_gold.fact_sales`
-        WHERE order_date = '{self.execution_date}'
+        WHERE order_date = @execution_date
         """
         start = time.time()
-        rows = self._run_query(sql)
+        rows = self._run_query_parameterized(sql, self._date_param())
         count = rows[0]["cnt"] if rows else 0
         result = "pass" if count > 0 else "fail"
         return DataQualityResult(
@@ -98,10 +112,10 @@ class DataQualityChecker:
         sql = f"""
         SELECT COUNT(DISTINCT unit_key) as active_units
         FROM `{self.project_id}.mrhealth_gold.fact_sales`
-        WHERE order_date = '{self.execution_date}'
+        WHERE order_date = @execution_date
         """
         start = time.time()
-        rows = self._run_query(sql)
+        rows = self._run_query_parameterized(sql, self._date_param())
         count = rows[0]["active_units"] if rows else 0
         result = (
             "pass"
@@ -215,7 +229,7 @@ class DataQualityChecker:
         WITH daily_counts AS (
           SELECT order_date, COUNT(*) as daily_orders
           FROM `{self.project_id}.mrhealth_gold.fact_sales`
-          WHERE order_date >= DATE_SUB('{self.execution_date}', INTERVAL 30 DAY)
+          WHERE order_date >= DATE_SUB(@execution_date, INTERVAL 30 DAY)
           GROUP BY order_date
         ),
         stats AS (
@@ -223,12 +237,12 @@ class DataQualityChecker:
             AVG(daily_orders) as avg_orders,
             STDDEV(daily_orders) as std_orders
           FROM daily_counts
-          WHERE order_date < '{self.execution_date}'
+          WHERE order_date < @execution_date
         ),
         today AS (
           SELECT COALESCE(daily_orders, 0) as today_orders
           FROM daily_counts
-          WHERE order_date = '{self.execution_date}'
+          WHERE order_date = @execution_date
         )
         SELECT
           s.avg_orders,
@@ -238,7 +252,7 @@ class DataQualityChecker:
         FROM stats s, today t
         """
         start = time.time()
-        rows = self._run_query(sql)
+        rows = self._run_query_parameterized(sql, self._date_param())
         if not rows or rows[0].get("z_score") is None:
             result = "warn"
             z_score = -1.0

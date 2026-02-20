@@ -37,7 +37,10 @@ spec:
             - name: POSTGRES_USER
               value: "airflow"
             - name: POSTGRES_PASSWORD
-              value: "airflow"
+              valueFrom:
+                secretKeyRef:
+                  name: mrhealth-secrets
+                  key: airflow-postgres-password
             - name: POSTGRES_DB
               value: "airflow"
           volumeMounts:

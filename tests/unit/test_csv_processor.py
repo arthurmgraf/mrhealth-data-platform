@@ -326,11 +326,18 @@ class TestProcessCsv:
 
         mock_read.assert_not_called()
 
+    @patch("cloud_functions.csv_processor.main.storage.Client")
     @patch("cloud_functions.csv_processor.main.load_to_bigquery")
     @patch("cloud_functions.csv_processor.main.validate_pedido")
     @patch("cloud_functions.csv_processor.main.read_csv_from_gcs")
-    def test_processes_pedido_csv(self, mock_read, mock_validate, mock_load, valid_pedido_df):
+    def test_processes_pedido_csv(
+        self, mock_read, mock_validate, mock_load, mock_storage, valid_pedido_df
+    ):
         from cloud_functions.csv_processor.main import process_csv
+
+        mock_blob = MagicMock()
+        mock_blob.size = 1024
+        mock_storage.return_value.bucket.return_value.blob.return_value = mock_blob
 
         mock_read.return_value = valid_pedido_df
         mock_validate.return_value = (valid_pedido_df, [])
@@ -344,13 +351,18 @@ class TestProcessCsv:
         mock_validate.assert_called_once()
         mock_load.assert_called_once_with(valid_pedido_df, "orders", "raw/csv_sales/pedido.csv")
 
+    @patch("cloud_functions.csv_processor.main.storage.Client")
     @patch("cloud_functions.csv_processor.main.load_to_bigquery")
     @patch("cloud_functions.csv_processor.main.validate_item_pedido")
     @patch("cloud_functions.csv_processor.main.read_csv_from_gcs")
     def test_processes_item_pedido_csv(
-        self, mock_read, mock_validate, mock_load, valid_item_pedido_df
+        self, mock_read, mock_validate, mock_load, mock_storage, valid_item_pedido_df
     ):
         from cloud_functions.csv_processor.main import process_csv
+
+        mock_blob = MagicMock()
+        mock_blob.size = 1024
+        mock_storage.return_value.bucket.return_value.blob.return_value = mock_blob
 
         mock_read.return_value = valid_item_pedido_df
         mock_validate.return_value = (valid_item_pedido_df, [])
@@ -366,10 +378,15 @@ class TestProcessCsv:
             valid_item_pedido_df, "order_items", "raw/csv_sales/item_pedido.csv"
         )
 
+    @patch("cloud_functions.csv_processor.main.storage.Client")
     @patch("cloud_functions.csv_processor.main.load_to_bigquery")
     @patch("cloud_functions.csv_processor.main.read_csv_from_gcs")
-    def test_skips_unknown_csv_file(self, mock_read, mock_load):
+    def test_skips_unknown_csv_file(self, mock_read, mock_load, mock_storage):
         from cloud_functions.csv_processor.main import process_csv
+
+        mock_blob = MagicMock()
+        mock_blob.size = 1024
+        mock_storage.return_value.bucket.return_value.blob.return_value = mock_blob
 
         mock_read.return_value = pd.DataFrame({"col": [1]})
 
@@ -380,13 +397,18 @@ class TestProcessCsv:
 
         mock_load.assert_not_called()
 
+    @patch("cloud_functions.csv_processor.main.storage.Client")
     @patch("cloud_functions.csv_processor.main.quarantine_file")
     @patch("cloud_functions.csv_processor.main.validate_pedido")
     @patch("cloud_functions.csv_processor.main.read_csv_from_gcs")
     def test_quarantines_when_no_valid_rows(
-        self, mock_read, mock_validate, mock_quarantine, valid_pedido_df
+        self, mock_read, mock_validate, mock_quarantine, mock_storage, valid_pedido_df
     ):
         from cloud_functions.csv_processor.main import process_csv
+
+        mock_blob = MagicMock()
+        mock_blob.size = 1024
+        mock_storage.return_value.bucket.return_value.blob.return_value = mock_blob
 
         mock_read.return_value = valid_pedido_df
         mock_validate.return_value = (pd.DataFrame(), ["All rows invalid"])
@@ -398,10 +420,15 @@ class TestProcessCsv:
 
         mock_quarantine.assert_called_once()
 
+    @patch("cloud_functions.csv_processor.main.storage.Client")
     @patch("cloud_functions.csv_processor.main.quarantine_file")
     @patch("cloud_functions.csv_processor.main.read_csv_from_gcs")
-    def test_quarantines_on_exception(self, mock_read, mock_quarantine):
+    def test_quarantines_on_exception(self, mock_read, mock_quarantine, mock_storage):
         from cloud_functions.csv_processor.main import process_csv
+
+        mock_blob = MagicMock()
+        mock_blob.size = 1024
+        mock_storage.return_value.bucket.return_value.blob.return_value = mock_blob
 
         mock_read.side_effect = Exception("Connection error")
 
@@ -412,7 +439,7 @@ class TestProcessCsv:
 
         mock_quarantine.assert_called_once()
         error_msg = mock_quarantine.call_args[0][2]
-        assert "Connection error" in error_msg
+        assert "Processing failed" in error_msg
 
 
 # ---------------------------------------------------------------------------

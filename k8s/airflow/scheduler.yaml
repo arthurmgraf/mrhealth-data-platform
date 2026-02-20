@@ -30,6 +30,16 @@ spec:
             - configMapRef:
                 name: airflow-config
           env:
+            - name: AIRFLOW__WEBSERVER__SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mrhealth-secrets
+                  key: airflow-secret-key
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: mrhealth-secrets
+                  key: airflow-db-conn
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: "/opt/airflow/keys/service-account.json"
             - name: MRHEALTH_CONFIG_PATH

@@ -1,22 +1,21 @@
 """
 MR. Health -- Apache Superset Configuration
 =============================================
-Custom configuration for local development with BigQuery backend.
+Production configuration with BigQuery backend and security hardening.
 """
 
 import os
 
-SECRET_KEY = os.environ.get(
-    "SUPERSET_SECRET_KEY",
-    "mrhealth-superset-dev-key-change-in-production",
-)
+# SECRET_KEY must be set via SUPERSET_SECRET_KEY environment variable.
+# No fallback -- fails loudly if missing to prevent insecure defaults.
+SECRET_KEY = os.environ["SUPERSET_SECRET_KEY"]
 
 SQLALCHEMY_DATABASE_URI = "sqlite:////app/superset_home/superset.db"
 
 WEBSERVER_THREADS = 8
 
 FEATURE_FLAGS = {
-    "ENABLE_TEMPLATE_PROCESSING": True,
+    "ENABLE_TEMPLATE_PROCESSING": False,
 }
 
 EXTRA_CATEGORICAL_COLOR_SCHEMES = [
@@ -43,4 +42,4 @@ CACHE_CONFIG = {
 }
 
 ENABLE_PROXY_FIX = True
-WTF_CSRF_ENABLED = False
+WTF_CSRF_ENABLED = True

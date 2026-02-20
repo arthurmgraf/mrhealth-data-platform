@@ -172,4 +172,4 @@ class TestExtractReferenceData:
         body, status = extract_reference_data(MagicMock())
 
         assert status == 500
-        assert "Secret Manager unavailable" in body
+        assert "Internal processing error" in body
