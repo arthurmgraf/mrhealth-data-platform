@@ -2,7 +2,7 @@
 
 # Data generation
 faker==33.1.0
-pandas==2.2.3
+pandas==3.0.1
 
 # GCP SDKs
 google-cloud-storage==2.14.0
