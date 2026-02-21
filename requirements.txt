@@ -10,7 +10,7 @@ google-cloud-bigquery==3.17.2
 functions-framework==3.5.0
 
 # Data processing
-numpy==1.26.4
+numpy==2.4.2
 pyarrow==14.0.2
 
 # Configuration
