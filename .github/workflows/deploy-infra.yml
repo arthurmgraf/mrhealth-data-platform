@@ -42,7 +42,7 @@ jobs:
     outputs:
       plan_exitcode: ${{ steps.plan.outputs.exitcode }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
@@ -96,7 +96,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
