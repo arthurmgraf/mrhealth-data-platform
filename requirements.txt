@@ -6,7 +6,7 @@ pandas==2.2.3
 
 # GCP SDKs
 google-cloud-storage==2.14.0
-google-cloud-bigquery==3.17.2
+google-cloud-bigquery==3.40.1
 functions-framework==3.5.0
 
 # Data processing
