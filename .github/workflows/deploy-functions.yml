@@ -28,7 +28,7 @@ jobs:
       pg_reference_extractor: ${{ steps.changes.outputs.pg_reference_extractor }}
       data_generator: ${{ steps.changes.outputs.data_generator }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 2
 
@@ -63,7 +63,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
@@ -97,7 +97,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
@@ -131,7 +131,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
