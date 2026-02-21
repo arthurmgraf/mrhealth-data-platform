@@ -1,7 +1,7 @@
 # MR. HEALTH Data Platform -- Python Dependencies (pinned for supply chain security)
 
 # Data generation
-faker==33.1.0
+faker==40.4.0
 pandas==2.2.3
 
 # GCP SDKs
